@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+*.sqlite3
+pgdata/
+.envrc
+.vscode/
+.idea/
+*.log
+
+# Docker
+*.pid
+*.sock
+*.db
+*.tar
+*.bak
+
+# Conda env
+env/
