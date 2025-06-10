@@ -48,8 +48,8 @@ class Parcela(Base):
 class Actividad(Base):
     __tablename__ = 'actividades'
 
-    id = Column(Integer, primary_key=True, index=True)
-    tipo = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True)
+    tipo = Column(String, nullable=False)  # e.g. "Fertilización", "Cosecha", "Pesaje"
     fecha = Column(Date, nullable=False)
     descripcion = Column(Text)
     usuario_id = Column(Integer, ForeignKey("usuarios.id"))
@@ -57,6 +57,18 @@ class Actividad(Base):
 
     usuario = relationship("Usuario", back_populates="actividades")
     parcela = relationship("Parcela", back_populates="actividades")
+    detalles = relationship("DetalleActividad", back_populates="actividad", cascade="all, delete-orphan").
+
+class DetalleActividad(Base):
+    __tablename__ = 'detalle_actividad'
+
+    id = Column(Integer, primary_key=True)
+    actividad_id = Column(Integer, ForeignKey("actividades.id"))
+    nombre = Column(String, nullable=False)  # e.g. "Fertilizante", "Kg cosechados", "Peso ganado"
+    valor = Column(String, nullable=False)   # puede ser número, texto, unidad
+    unidad = Column(String, nullable=True)   # e.g. "kg", "l", "m3", "cabezas"
+
+    actividad = relationship("Actividad", back_populates="detalles")
 
 
 class Ubicacion(Base):
