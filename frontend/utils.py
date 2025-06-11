@@ -1,6 +1,24 @@
 import requests
+from folium import GeoJson, GeoJsonTooltip
 
 API_URL = "http://localhost:8000"  # Ajusta si corres desde Docker o con dominio
+
+def add_geojson_polygon(grupo, name, coords, color, opacity):
+    feature = {
+        "type": "Feature",
+        "properties": {"name": name},
+        "geometry": {"type": "Polygon", "coordinates": [[ [lon, lat] for lat, lon in coords ]]}
+    }
+    GeoJson(
+        feature,
+        tooltip=GeoJsonTooltip(fields=["name"], aliases=["Nombre:"], sticky=True),
+        style_function=lambda x: {
+            "fillColor": color,
+            "color": "black",
+            "weight": 2,
+            "fillOpacity": opacity,
+        }
+    ).add_to(grupo)
 
 def obtener_terrenos():
     try:
