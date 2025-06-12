@@ -3,54 +3,49 @@ import random
 from datetime import date, timedelta
 
 terrenos = pd.DataFrame([
-    {"id": 1, "nombre": "Terreno 1", "descripcion": "Cultivo de maíz"},
-    {"id": 2, "nombre": "Terreno 2", "descripcion": "Ganadería"}
+    {"id": 1, "nombre": "Terreno 1", "descripcion": "Cultivo mixto de hortalizas"},
+    {"id": 2, "nombre": "Terreno 2", "descripcion": "Ganadería y forraje"}
 ])
 
-# Parcelas
+# Parcelas con control de días sin actividad para simular estado
 parcelas = pd.DataFrame([
-    {"id": 1, "nombre": "Parcela 1A", "terreno_id": 1, "uso_actual": "Maíz joven", "estado": "activo"},
-    {"id": 2, "nombre": "Parcela 1B", "terreno_id": 1, "uso_actual": "Maíz maduro", "estado": "cosecha"},
-    {"id": 3, "nombre": "Parcela 2A", "terreno_id": 2, "uso_actual": "Pasto", "estado": "activo"},
-    {"id": 4, "nombre": "Parcela 2B", "terreno_id": 2, "uso_actual": "Corrales", "estado": "mantenimiento"}
+    {"id": 1, "nombre": "Parcela 1A", "terreno_id": 1, "uso_actual": "Maíz joven", "estado": "activo", "dias_sin_actividad": 1},  # Óptimo
+    {"id": 2, "nombre": "Parcela 1B", "terreno_id": 1, "uso_actual": "Tomate en invernadero", "estado": "activo", "dias_sin_actividad": 2},  # Óptimo
+    {"id": 3, "nombre": "Parcela 2A", "terreno_id": 2, "uso_actual": "Pasto", "estado": "activo", "dias_sin_actividad": 7},  # Atención
+    {"id": 4, "nombre": "Parcela 2B", "terreno_id": 2, "uso_actual": "Corrales", "estado": "mantenimiento", "dias_sin_actividad": 12}  # Crítico
 ])
 
 parcelas_info = {
-    'Terreno 1': "🌽 Cultivo de maíz.\nUso mixto: joven y maduro.",
-    'Parcela 1A': "🌱 Maíz joven.\nÁrea experimental.",
-    'Parcela 1B': "🌽 Maíz maduro.\nListo para cosecha.",
-    'Terreno 2': "🐄 Ganadería.\nDivisión entre pasto y corrales.",
-    'Parcela 2A': "🌾 Zona de pasto.\nRotación semanal.",
-    'Parcela 2B': "🐖 Corrales.\nRequiere limpieza.",
+    'Terreno 1': "🌽 Cultivo mixto de maíz y tomate.",
+    'Parcela 1A': "🌱 Maíz joven.",
+    'Parcela 1B': "🍅 Tomate bajo invernadero.",
+    'Terreno 2': "🐄 Zona de ganadería y forraje.",
+    'Parcela 2A': "🌾 Pasto para rotación.",
+    'Parcela 2B': "🐖 Corrales en mantenimiento.",
 }
 
-
 def simular_datos(parcelas):
-    # Simulación de actividades con detalles
     tipos_actividad = ["Riego", "Fertilización", "Fumigación", "Cosecha", "Siembra", "Limpieza", "Pesaje", "Vacunación", "Ordeño"]
     actividades = []
+    hoy = date.today()
 
-    base_date = date(2025, 6, 1)
-    for parcela_id in parcelas["id"]:
-        for _ in range(10):
+    for _, row in parcelas.iterrows():
+        base_date = hoy - timedelta(days=row["dias_sin_actividad"])
+        for i in range(5):
             tipo = random.choice(tipos_actividad)
             actividades.append({
-                "parcela_id": parcela_id,
-                "nombre": parcelas[parcelas["id"] == parcela_id]["nombre"].values[0],
+                "parcela_id": row["id"],
+                "nombre": row["nombre"],
                 "tipo": tipo,
                 "descripcion": "Tarea realizada",
-                "fecha": base_date + timedelta(days=random.randint(0, 15))
+                "fecha": base_date - timedelta(days=i)
             })
 
     df_actividades = pd.DataFrame(actividades).reset_index(drop=True)
     df_actividades["id"] = df_actividades.index + 1
     df_actividades["fecha"] = pd.to_datetime(df_actividades["fecha"])
 
-
-    # ----------------------------
-    # Detalles por actividad
     detalles = []
-
     for actividad in df_actividades.itertuples():
         if actividad.tipo == "Fertilización":
             detalles.append({"actividad_id": actividad.id, "nombre": "Fertilizante NPK", "valor": 50, "unidad": "kg"})

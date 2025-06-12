@@ -3,5 +3,9 @@ streamlit-folium
 folium
 geopandas
 requests
-pandasai
 anthropic
+langchain
+langchain-community
+langchain-anthropic
+sentence-transformers
+faiss-cpu

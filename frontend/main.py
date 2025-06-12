@@ -6,6 +6,9 @@ from views import mostrar_frecuencia, mostrar_detalles, mostrar_ultimas
 from utils import evaluar_estado_parcelas, resumen_estado_parcelas
 from chat import chatbot_structure
 import pandas as pd
+import os
+
+os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 
 
 # Configuración de la página
@@ -31,7 +34,7 @@ parcelas_ids = {row["nombre"]: row["id"] for _, row in parcelas.iterrows()}
 col1, col2 = st.columns([5,4])
 with col1:
     st.write("### Mapa interactivo")
-    mapa = construir_mapa()
+    mapa = construir_mapa(df_actividades)
     output = st_folium(mapa, width=600, height=400)
 
 with col2:
@@ -67,7 +70,7 @@ with col2:
                 vista = st.selectbox("Selecciona Gráfico:", opciones)
                 mostrar_frecuencia(df_terreno)
     else:
-        st.markdown("# Haz clic en una parcela o terreno para ver más información.")
+        st.markdown("## Haz clic en una parcela o terreno para ver más información.")
 
 
 
@@ -77,7 +80,7 @@ st.sidebar.markdown("---")
 with st.sidebar:
     estado_parcelas = evaluar_estado_parcelas(df_actividades)
     resumen = resumen_estado_parcelas(estado_parcelas)
-    inicial = f"RESUMEN ACTUAL: <br> 🌿 En estado **óptimo**: {resumen['Óptimo']}<br>" + f"⚠️ Requieren **atención**: {resumen['Atención']}<br>" + f"🔥 En estado **crítico**: {resumen['Crítico']}"
+    inicial = f"RESUMEN ACTUAL: <br> ✅ En estado **óptimo**: {resumen['Óptimo']}<br>" + f"⚠️ Requieren **atención**: {resumen['Atención']}<br>" + f"🚨 En estado **crítico**: {resumen['Crítico']}"
 
     
     if "messages" not in st.session_state:
