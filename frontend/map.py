@@ -3,7 +3,7 @@ from utils import add_geojson_polygon
 
 def construir_mapa():
     # Crear mapa base
-    m = folium.Map(location=[5.490471, -74.686919], zoom_start=16, tiles='Esri.WorldImagery')
+    m = folium.Map(location=[5.490471, -74.682925], zoom_start=15, tiles='Esri.WorldImagery')
     grupo_terrenos = folium.FeatureGroup(name="Terrenos", show=1)
     grupo_parcelas = folium.FeatureGroup(name="Parcelas", show=1)
 
