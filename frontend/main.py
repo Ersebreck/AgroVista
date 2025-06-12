@@ -3,11 +3,14 @@ from streamlit_folium import st_folium
 from data_simulation import simular_datos, parcelas_info, parcelas, terrenos
 from map import construir_mapa
 from views import mostrar_frecuencia, mostrar_detalles, mostrar_ultimas
-
+from utils import chatbot_response
 #
 # Inicializa el estado si es necesario
+
+hola = "Buenos días, Juan. Hoy hay 3 parcelas con tareas pendientes, 1 con cosecha reciente, y 1 sin actividad en los últimos 5 días."
+
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "Buenos días, Juan. Hoy hay 3 parcelas con tareas pendientes, 1 con cosecha reciente, y 1 sin actividad en los últimos 5 días."}]
+    st.session_state["messages"] = [{"role": "assistant", "content": hola}]
 
 st.set_page_config(layout="wide")
 st.title("🌱 AgroVista")
@@ -28,7 +31,7 @@ with col2:
         clicked = clicked.split("\n")[-2].replace("  ","")
         st.markdown(f"### 📊 {clicked}")
         st.write(parcelas_info.get(clicked, "Sin información."))
-        opciones = ["Frecuencia de actividades", "Detalles de actividad", "Ultimas actividades", "Chat"]
+        opciones = ["Frecuencia de actividades", "Detalles de actividad", "Ultimas actividades"]
         vista = st.selectbox("Selecciona vista:", opciones)
 
         if clicked in parcelas_ids:
@@ -52,27 +55,12 @@ st.sidebar.header("🌱 AgroVista")
 
 with st.sidebar:
 
-    # Mostrar todo el historial
-    for msg in st.session_state.messages:
-        st.chat_message(msg["role"]).write(msg["content"])
-
-    # Entrada del usuario
-    if prompt := st.chat_input("Escribe tu mensaje"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-
-        # Respuesta simulada del sistema
-        respuesta = f"Simulación de respuesta para: {prompt}"
-        st.session_state.messages.append({"role": "assistant", "content": respuesta})
-    if respuesta:
-        st.chat_message("user").write(prompt)
-        st.chat_message("assistant").write(respuesta)
-        respuesta = None
-    if st.button("🧹 Limpiar chat"):
-        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+    chatbot_response()
+    st.sidebar.markdown("---")
 
 
 # page footer
-    for _ in range(15):
+    for _ in range(13):
         st.sidebar.markdown("\n", unsafe_allow_html=True)
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Desarrollado por:\n**ERICK SEBASTIAN LOZANO ROA 🤖**")
