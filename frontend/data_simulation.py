@@ -44,6 +44,8 @@ def simular_datos(parcelas):
 
     df_actividades = pd.DataFrame(actividades).reset_index(drop=True)
     df_actividades["id"] = df_actividades.index + 1
+    df_actividades["fecha"] = pd.to_datetime(df_actividades["fecha"])
+
 
     # ----------------------------
     # Detalles por actividad

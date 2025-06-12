@@ -3,11 +3,13 @@ from streamlit_folium import st_folium
 from data_simulation import simular_datos, parcelas_info, parcelas, terrenos
 from map import construir_mapa
 from views import mostrar_frecuencia, mostrar_detalles, mostrar_ultimas
-from utils import chatbot_response
-#
+from utils import chatbot_response, evaluar_estado_parcelas, resumen_estado_parcelas
+import pandas as pd
+
 # Inicializa el estado si es necesario
 
-hola = "Buenos días, Juan. Hoy hay 3 parcelas con tareas pendientes, 1 con cosecha reciente, y 1 sin actividad en los últimos 5 días."
+hola = "Bienvenido a AgroVista, tu asistente virtual para la gestión agrícola."
+hoy = pd.Timestamp.today().normalize()
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": hola}]
@@ -47,20 +49,25 @@ with col2:
             st.info("Selecciona una parcela.")
     else:
         st.markdown("# Haz clic en una parcela o terreno para ver más información.")
+        st.markdown("## 🔔 Resumen del día")
+        estado_parcelas = evaluar_estado_parcelas(df_actividades)
+        resumen = resumen_estado_parcelas(estado_parcelas)
+        st.write(f"🌿 Parcelas en estado **óptimo**: {resumen['Óptimo']}")
+        st.write(f"⚠️ Parcelas que requieren **atención**: {resumen['Atención']}")
+        st.write(f"🔥 Parcelas en estado **crítico**: {resumen['Crítico']}")
+
+
 
 # sidebar
-st.sidebar.header("🌱 AgroVista")
-# Información del usuario
-#usuario = st.sidebar.selectbox("Selecciona un usuario:", ["Escoger Un Usuario","Propietario", "Administrador", "Operario"])
-
+st.sidebar.title("🌱 Chatbot AgroVista")
+st.sidebar.markdown("---")
 with st.sidebar:
-
     chatbot_response()
-    st.sidebar.markdown("---")
+    
 
 
 # page footer
-    for _ in range(13):
+    for _ in range(10):
         st.sidebar.markdown("\n", unsafe_allow_html=True)
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Desarrollado por:\n**ERICK SEBASTIAN LOZANO ROA 🤖**")
