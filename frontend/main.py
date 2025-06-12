@@ -3,19 +3,19 @@ from streamlit_folium import st_folium
 from data_simulation import simular_datos, parcelas_info, parcelas, terrenos
 from map import construir_mapa
 from views import mostrar_frecuencia, mostrar_detalles, mostrar_ultimas
-from utils import chatbot_response, evaluar_estado_parcelas, resumen_estado_parcelas
+from utils import evaluar_estado_parcelas, resumen_estado_parcelas
+from chat import chatbot_response, chatbot_structure
 import pandas as pd
 
 # Inicializa el estado si es necesario
 
-hola = "Bienvenido a AgroVista, tu asistente virtual para la gestión agrícola."
+
 hoy = pd.Timestamp.today().normalize()
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": hola}]
 
 st.set_page_config(layout="wide")
 st.title("🌱 AgroVista")
+
 # Carga de datos
 df_actividades, detalles_df = simular_datos(parcelas)
 parcelas_ids = {row["nombre"]: row["id"] for _, row in parcelas.iterrows()}
@@ -49,12 +49,6 @@ with col2:
             st.info("Selecciona una parcela.")
     else:
         st.markdown("# Haz clic en una parcela o terreno para ver más información.")
-        st.markdown("## 🔔 Resumen del día")
-        estado_parcelas = evaluar_estado_parcelas(df_actividades)
-        resumen = resumen_estado_parcelas(estado_parcelas)
-        st.write(f"🌿 Parcelas en estado **óptimo**: {resumen['Óptimo']}")
-        st.write(f"⚠️ Parcelas que requieren **atención**: {resumen['Atención']}")
-        st.write(f"🔥 Parcelas en estado **crítico**: {resumen['Crítico']}")
 
 
 
@@ -62,7 +56,16 @@ with col2:
 st.sidebar.title("🌱 Chatbot AgroVista")
 st.sidebar.markdown("---")
 with st.sidebar:
-    chatbot_response()
+    estado_parcelas = evaluar_estado_parcelas(df_actividades)
+    resumen = resumen_estado_parcelas(estado_parcelas)
+    inicial = f"RESUMEN ACTUAL: <br> 🌿 En estado **óptimo**: {resumen['Óptimo']}<br>" + f"⚠️ Requieren **atención**: {resumen['Atención']}<br>" + f"🔥 En estado **crítico**: {resumen['Crítico']}"
+
+    
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = [{"role": "assistant", "content": inicial}]
+
+    chatbot_structure(df_actividades, detalles_df)
+
     
 
 

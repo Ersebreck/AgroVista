@@ -69,22 +69,6 @@ def evaluar_estado_parcelas(df_actividades):
 
     return estado_parcelas
 
-def chatbot_response():
-    # Mostrar todo el historial
-    for msg in st.session_state.messages:
-        st.chat_message(msg["role"]).write(msg["content"])
-
-    # Entrada del usuario
-    if prompt := st.chat_input("Chatea con AgroVista"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        # Respuesta simulada del sistema
-        respuesta = f"Simulación de respuesta para: {prompt}"
-        st.session_state.messages.append({"role": "assistant", "content": respuesta})
-        st.rerun()
-    if st.button("🧹 Limpiar chat"):
-        st.session_state["messages"] = [{"role": "assistant", "content": hola}]
-        st.rerun()
-
 
 def add_geojson_polygon(grupo, name, coords, color, opacity):
     feature = {
