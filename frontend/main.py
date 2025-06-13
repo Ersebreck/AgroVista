@@ -86,7 +86,7 @@ with st.sidebar:
     if "messages" not in st.session_state:
         st.session_state["messages"] = [{"role": "assistant", "content": inicial}]
 
-    chatbot_structure(df_actividades, detalles_df)
+    chatbot_structure(df_actividades, detalles_df, evaluar_estado_parcelas(df_actividades))
 
     
 

@@ -9,3 +9,4 @@ langchain-community
 langchain-anthropic
 sentence-transformers
 faiss-cpu
+jq
