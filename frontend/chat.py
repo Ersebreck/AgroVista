@@ -123,7 +123,7 @@ def chatbot_structure(df_actividades, detalles_df, estado_parcelas):
 
     if prompt := st.chat_input("Chatea con AgroVista"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        respuesta = responder_consulta(prompt, db)
+        respuesta = "Simulación"#responder_consulta(prompt, db)
         st.session_state.messages.append({"role": "assistant", "content": respuesta})
         st.rerun()
 
