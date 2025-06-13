@@ -100,8 +100,7 @@ def responder_consulta(prompt, db):
 
 
 def chatbot_structure(df_actividades, detalles_df, estado_parcelas):
-    db = preparar_contexto(df_actividades, detalles_df, estado_parcelas)
-
+    #db = preparar_contexto(df_actividades, detalles_df, estado_parcelas)
     estado_parcelas = {
         "Óptimo": sum("Activa" in str(x) for x in df_actividades.tipo),
         "Atención": 1,
