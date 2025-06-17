@@ -104,6 +104,6 @@ Este proyecto nació como un MVP práctico pero tiene aplicación real. Si te in
 ## 👨‍💻 Autor
 
 **Erick Sebastián Lozano Roa**  
-🔗 [LinkedIn](https://www.linkedin.com/in/erick-lozano-roa) – 🤖 Investigador en IA, optimización y tecnología agrícola
+🔗 [LinkedIn](https://www.linkedin.com/in/erick-lozano) – 🤖 Investigador en IA, optimización y tecnología agrícola
 
 ---
