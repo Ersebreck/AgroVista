@@ -14,6 +14,8 @@ WORKDIR /app
 
 # Copiar dependencias y código
 COPY ./requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install uv
+RUN uv pip install --system -r requirements.txt
+RUN uv cache clean
 
 COPY . /app

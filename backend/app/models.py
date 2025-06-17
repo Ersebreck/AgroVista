@@ -57,7 +57,7 @@ class Actividad(Base):
 
     usuario = relationship("Usuario", back_populates="actividades")
     parcela = relationship("Parcela", back_populates="actividades")
-    detalles = relationship("DetalleActividad", back_populates="actividad", cascade="all, delete-orphan").
+    detalles = relationship("DetalleActividad", back_populates="actividad", cascade="all, delete-orphan")
 
 class DetalleActividad(Base):
     __tablename__ = 'detalle_actividad'

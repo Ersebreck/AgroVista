@@ -3,11 +3,3 @@ streamlit-folium
 folium
 geopandas
 requests
-anthropic
-langchain
-langchain-community
-langchain-anthropic
-langchain_huggingface
-sentence-transformers
-faiss-cpu
-jq
