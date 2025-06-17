@@ -91,3 +91,18 @@ class ActividadOut(ActividadBase):
 
     class Config:
         orm_mode = True
+
+# ---------- DETALLE ACTIVIDAD ----------
+
+class DetalleActividadCreate(BaseModel):
+    actividad_id: int
+    nombre: str
+    valor: str
+    unidad: Optional[str] = None
+
+class DetalleActividadOut(DetalleActividadCreate):
+    id: int
+
+    class Config:
+        orm_mode = True
+

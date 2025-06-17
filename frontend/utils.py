@@ -1,11 +1,19 @@
 import requests
-from folium import GeoJson, GeoJsonTooltip
 import streamlit as st
 from datetime import date, timedelta
 import pandas as pd
 from collections import Counter
 
 API_URL = "http://localhost:8000"  # Ajusta si corres desde Docker o con dominio
+
+def obtener_actividades_por_parcela(parcela_id):
+    try:
+        res = requests.get(f"{API_URL}/actividades/por-parcela/{parcela_id}")
+        res.raise_for_status()
+        return res.json()
+    except Exception as e:
+        print(f"Error al obtener actividades: {e}")
+        return []
 
 def resumen_estado_parcelas(estado_parcelas):
     resumen = Counter({
@@ -26,7 +34,6 @@ def resumen_estado_parcelas(estado_parcelas):
             resumen["Atención"] += 1
 
     return resumen
-
 
 def evaluar_estado_parcelas(df_actividades):
     hoy = pd.Timestamp.today().normalize()  # <-- Cambio aquí
@@ -68,24 +75,6 @@ def evaluar_estado_parcelas(df_actividades):
         estado_parcelas[parcela_id] = estado
 
     return estado_parcelas
-
-
-def add_geojson_polygon(grupo, name, coords, color, opacity):
-    feature = {
-        "type": "Feature",
-        "properties": {"name": name},
-        "geometry": {"type": "Polygon", "coordinates": [[ [lon, lat] for lat, lon in coords ]]}
-    }
-    GeoJson(
-        feature,
-        tooltip=GeoJsonTooltip(fields=["name"], aliases=["Nombre:"], sticky=True),
-        style_function=lambda x: {
-            "fillColor": color,
-            "color": "black",
-            "weight": 2,
-            "fillOpacity": opacity,
-        }
-    ).add_to(grupo)
 
 def obtener_terrenos():
     try:

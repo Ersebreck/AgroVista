@@ -1,98 +1,127 @@
-import random
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Polygon
-from app.db import engine, SessionLocal
-from app.models import Base, Usuario, Ubicacion, Terreno, Parcela, Actividad
-
-
-def random_polygon(x0, y0, size=1.0):
-    return Polygon([
-        (x0, y0),
-        (x0 + size, y0),
-        (x0 + size, y0 + size),
-        (x0, y0 + size),
-        (x0, y0)
-    ])
-
+from app.models import Usuario, Terreno, Parcela, Ubicacion, Actividad, DetalleActividad
+import random
 
 def create_users(db: Session):
-    # Admin
-    admin = Usuario(
-        nombre="Admin Global",
-        correo="admin@agrovista.com",
-        contrasena="admin123",  # sin hash por ahora
-        rol="admin"
-    )
-    db.add(admin)
-
-    propietarios = []
-    for i in range(5):
-        user = Usuario(
-            nombre=f"Propietario {i+1}",
-            correo=f"user{i+1}@agro.com",
-            contrasena="pass123",
-            rol="propietario"
-        )
-        db.add(user)
-        propietarios.append(user)
+    admin = Usuario(nombre="Admin", correo="admin@agro.com", contrasena="admin123", rol="admin")
+    propietario = Usuario(nombre="Propietario Demo", correo="prop@agro.com", contrasena="demo123", rol="propietario")
+    db.add_all([admin, propietario])
     db.commit()
-    return propietarios
+    return propietario
 
+def create_terrenos_y_parcelas(db: Session, propietario):
+    hoy = date.today()
 
-def create_terrenos_y_parcelas(db: Session, propietarios):
-    actividad_tipos = ["Siembra", "Riego", "Fertilización", "Cosecha", "Inspección"]
-    usos = ["Maíz", "Frijol", "Papa", "Reposo", "Caña"]
-    estados = ["activa", "inactiva"]
+    terrenos_coords = {
+        "Terreno 1": [
+            [5.490012, -74.689513], [5.491388, -74.686458], [5.493076, -74.686186],
+            [5.494909, -74.687275], [5.495821, -74.687296], [5.495455, -74.689642],
+            [5.492761, -74.690266]
+        ],
+        "Terreno 2": [
+            [5.490012, -74.689513], [5.491388, -74.686458], [5.489541, -74.683064],
+            [5.485220, -74.683948], [5.487558, -74.688777]
+        ]
+    }
 
-    parcela_id = 1
-    for i, prop in enumerate(propietarios):
-        for t in range(2):  # 2 terrenos por propietario
-            x0, y0 = i * 15 + t * 6, 0
-            ubic = Ubicacion(
-                tipo="poligono",
-                coordenadas=from_shape(random_polygon(x0, y0, 5.0), srid=4326),
-                referencia={"nombre": f"Terreno {t+1} de {prop.nombre}"}
+    parcelas_coords = {
+        "Parcela 1A": [
+            [5.490012, -74.689513], [5.490818, -74.687843], 
+            [5.493041, -74.688052], [5.492761, -74.690266]
+        ],
+        "Parcela 1B": [
+            [5.493021, -74.688042], [5.493201, -74.686225], 
+            [5.494670, -74.687154], [5.495789, -74.687333], 
+            [5.495671, -74.688349]
+        ],
+        "Parcela 2A": [
+            [5.488324, -74.685804], [5.486298, -74.686302], 
+            [5.485390, -74.683935], [5.487827, -74.683315]
+        ],
+        "Parcela 2B": [
+            [5.488324, -74.685804], [5.487951, -74.683294], 
+            [5.489582, -74.683106], [5.490635, -74.685222]
+        ]
+    }
+
+    parcelas_info = {
+        "Parcela 1A": {"uso": "Maíz joven", "estado": "activo", "dias_sin_actividad": 1},
+        "Parcela 1B": {"uso": "Caña de azucar", "estado": "activo", "dias_sin_actividad": 2},
+        "Parcela 2A": {"uso": "Pasto", "estado": "activo", "dias_sin_actividad": 7},
+        "Parcela 2B": {"uso": "Corrales", "estado": "mantenimiento", "dias_sin_actividad": 12}
+    }
+
+    terreno_objs = {}
+    for nombre, coords in terrenos_coords.items():
+        poligono = Polygon([(lon, lat) for lat, lon in coords])
+        ubicacion = Ubicacion(
+            tipo="poligono",
+            coordenadas=from_shape(poligono, srid=4326),
+            referencia={"nombre": nombre}
+        )
+        db.add(ubicacion)
+        db.commit()
+
+        terreno = Terreno(
+            nombre=nombre,
+            descripcion="Terreno generado con coordenadas reales.",
+            propietario_id=propietario.id,
+            ubicacion_id=ubicacion.id
+        )
+        db.add(terreno)
+        db.commit()
+        terreno_objs[nombre] = terreno
+
+    for i, (nombre, coords) in enumerate(parcelas_coords.items(), start=1):
+        terreno_id = 1 if "1" in nombre else 2
+        info = parcelas_info[nombre]
+        poligono = Polygon([(lon, lat) for lat, lon in coords])
+        ubic = Ubicacion(
+            tipo="poligono",
+            coordenadas=from_shape(poligono, srid=4326),
+            referencia={"nombre": nombre}
+        )
+        db.add(ubic)
+        db.commit()
+
+        parcela = Parcela(
+            nombre=nombre,
+            uso_actual=info["uso"],
+            estado=info["estado"],
+            terreno_id=terreno_objs[f"Terreno {terreno_id}"].id,
+            ubicacion_id=ubic.id
+        )
+        db.add(parcela)
+        db.commit()
+
+        base_date = hoy - timedelta(days=info["dias_sin_actividad"])
+        for a in range(3):
+            tipo = random.choice(["Riego", "Fertilización", "Cosecha", "Vacunación", "Ordeño"])
+            actividad = Actividad(
+                tipo=tipo,
+                fecha=base_date - timedelta(days=a),
+                descripcion=f"{tipo} automática",
+                usuario_id=propietario.id,
+                parcela_id=parcela.id
             )
-            db.add(ubic)
-            db.commit()
-            terreno = Terreno(
-                nombre=f"Terreno_{prop.id}_{t+1}",
-                descripcion="Terreno agrícola automatizado.",
-                propietario_id=prop.id,
-                ubicacion_id=ubic.id
-            )
-            db.add(terreno)
+            db.add(actividad)
             db.commit()
 
-            num_parcelas = random.randint(3, 6)
-            for p in range(num_parcelas):
-                dx, dy = (p % 3) * 1.5, (p // 3) * 1.5
-                sub_ubic = Ubicacion(
-                    tipo="poligono",
-                    coordenadas=from_shape(random_polygon(x0 + dx, y0 + dy, 1.2), srid=4326),
-                    referencia={"nombre": f"Parcela {parcela_id}"}
-                )
-                db.add(sub_ubic)
-                db.commit()
-                parcela = Parcela(
-                    nombre=f"Parcela_{terreno.id}_{p+1}",
-                    uso_actual=random.choice(usos),
-                    estado=random.choice(estados),
-                    terreno_id=terreno.id,
-                    ubicacion_id=sub_ubic.id
-                )
-                db.add(parcela)
-                db.commit()
+            detalle = None
+            if tipo == "Fertilización":
+                detalle = DetalleActividad(nombre="Fertilizante NPK", valor="50", unidad="kg", actividad_id=actividad.id)
+            elif tipo == "Cosecha":
+                detalle = DetalleActividad(nombre="Kg cosechados", valor=str(random.randint(800, 1500)), unidad="kg", actividad_id=actividad.id)
+            elif tipo == "Riego":
+                detalle = DetalleActividad(nombre="Agua utilizada", valor=str(random.randint(200, 800)), unidad="l", actividad_id=actividad.id)
+            elif tipo == "Vacunación":
+                detalle = DetalleActividad(nombre="Vacuna aplicada", valor="Fiebre Aftosa", unidad="dosis", actividad_id=actividad.id)
+            elif tipo == "Ordeño":
+                detalle = DetalleActividad(nombre="Litros ordeñados", valor=str(random.randint(10, 30)), unidad="l", actividad_id=actividad.id)
 
-                num_actividades = random.randint(2, 5)
-                for a in range(num_actividades):
-                    actividad = Actividad(
-                        tipo=random.choice(actividad_tipos),
-                        fecha=date.today() - timedelta(days=random.randint(0, 100)),
-                        descripcion=f"Actividad generada automáticamente {a+1}",
-                        usuario_id=prop.id,
-                        parcela_id=parcela.id
-                    )
-                    db.add(actividad)
+            if detalle:
+                db.add(detalle)
+                db.commit()

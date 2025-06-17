@@ -1,5 +1,23 @@
 import folium
-from utils import add_geojson_polygon, evaluar_estado_parcelas
+from utils import evaluar_estado_parcelas
+from folium import GeoJson, GeoJsonTooltip
+
+def add_geojson_polygon(grupo, name, coords, color, opacity):
+    feature = {
+        "type": "Feature",
+        "properties": {"name": name},
+        "geometry": {"type": "Polygon", "coordinates": [[ [lon, lat] for lat, lon in coords ]]}
+    }
+    GeoJson(
+        feature,
+        tooltip=GeoJsonTooltip(fields=["name"], aliases=["Nombre:"], sticky=True),
+        style_function=lambda x: {
+            "fillColor": color,
+            "color": "black",
+            "weight": 2,
+            "fillOpacity": opacity,
+        }
+    ).add_to(grupo)
 
 def construir_mapa(df_actividades):
     # Crear mapa base

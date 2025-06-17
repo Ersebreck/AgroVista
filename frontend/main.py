@@ -1,17 +1,19 @@
 import streamlit as st
 from streamlit_folium import st_folium
-from data_simulation import simular_datos, parcelas_info, parcelas, terrenos
+from utils import (
+    evaluar_estado_parcelas,
+    resumen_estado_parcelas,
+    obtener_terrenos,
+    obtener_parcelas_por_terreno,
+    obtener_actividades_por_parcela
+)
 from map import construir_mapa
 from views import mostrar_frecuencia, mostrar_detalles, mostrar_ultimas
-from utils import evaluar_estado_parcelas, resumen_estado_parcelas
 from chat import chatbot_structure
 import pandas as pd
 import os
 
 os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
-
-
-# Configuración de la página
 st.set_page_config(layout="wide")
 
 st.markdown("""
@@ -22,16 +24,34 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+st.title("🌱 AgroVista")
 hoy = pd.Timestamp.today().normalize()
 
-st.title("🌱 AgroVista")
+# ------------------------------
+# 🔄 Carga real desde el backend
+# ------------------------------
+terrenos = obtener_terrenos()
+parcelas = []
+for terreno in terrenos:
+    parcelas += obtener_parcelas_por_terreno(terreno["id"])
 
-# Carga de datos
-df_actividades, detalles_df = simular_datos(parcelas)
-parcelas_ids = {row["nombre"]: row["id"] for _, row in parcelas.iterrows()}
+df_actividades = []
+for parcela in parcelas:
+    acts = obtener_actividades_por_parcela(parcela["id"])
+    for act in acts:
+        act["nombre"] = parcela["nombre"]
+    df_actividades += acts
 
-# Mapa
-col1, col2 = st.columns([5,4])
+df_actividades = pd.DataFrame(df_actividades)
+df_actividades["fecha"] = pd.to_datetime(df_actividades["fecha"], errors="coerce")
+parcelas_df = pd.DataFrame(parcelas)
+terrenos_df = pd.DataFrame(terrenos)
+parcelas_ids = {row["nombre"]: row["id"] for _, row in parcelas_df.iterrows()}
+
+# ------------------------------
+# 🗺️ Mapa interactivo
+# ------------------------------
+col1, col2 = st.columns([5, 4])
 with col1:
     st.write("### Mapa interactivo")
     mapa = construir_mapa(df_actividades)
@@ -41,9 +61,8 @@ with col2:
     clicked = output.get("last_object_clicked_tooltip")
     if clicked:
         clicked = clicked.split("\n")[-2].replace("  ","")
-        st.markdown(f"#### 📊 {clicked} - {(parcelas_info.get(clicked, 'Sin información.'))}")
+        st.markdown(f"#### 📊 {clicked}")
         opciones = ["Frecuencia de actividades", "Detalles de actividad", "Ultimas actividades"]
-        
 
         if clicked in parcelas_ids:
             vista = st.selectbox("Selecciona Gráfico:", opciones)
@@ -51,47 +70,41 @@ with col2:
             if vista == "Frecuencia de actividades":
                 mostrar_frecuencia(df_parcela)
             elif vista == "Detalles de actividad":
-                mostrar_detalles(df_parcela, detalles_df)
+                mostrar_detalles(df_parcela, pd.DataFrame())  # Puedes conectar detalles reales si haces endpoint
             elif vista == "Ultimas actividades":
                 mostrar_ultimas(df_parcela)
-     
         else:
-            # Si es un Terreno, mostrar consolidado de sus parcelas
-            terreno_id = terrenos[terrenos["nombre"] == clicked]["id"].values[0]
-            parcelas_terreno = parcelas[parcelas["terreno_id"] == terreno_id]
+            terreno_id = terrenos_df[terrenos_df["nombre"] == clicked]["id"].values[0]
+            parcelas_terreno = parcelas_df[parcelas_df["terreno_id"] == terreno_id]
             with st.expander("📌 Parcelas asociadas:"):
                 for _, row in parcelas_terreno.iterrows():
                     nombre = row["nombre"]
                     st.markdown(f"- **{nombre}** ({row['uso_actual']})")
-                
-                df_terreno = df_actividades[df_actividades["parcela_id"].isin(parcelas_terreno["id"])]
-
             with st.expander(" 📈 Consolidado"):
                 vista = st.selectbox("Selecciona Gráfico:", opciones)
+                df_terreno = df_actividades[df_actividades["parcela_id"].isin(parcelas_terreno["id"])]
                 mostrar_frecuencia(df_terreno)
     else:
         st.markdown("## Haz clic en una parcela o terreno para ver más información.")
 
-
-
-# sidebar
-st.sidebar.markdown("### 🌱 Chatbot AgroVista")
+# ------------------------------
+# 🤖 Chatbot + resumen de estado
+# ------------------------------
+st.sidebar.markdown("### 🌱 Chatbot AgroVista <br>Versión 0.1", unsafe_allow_html=True)
 st.sidebar.markdown("---")
+
 with st.sidebar:
     estado_parcelas = evaluar_estado_parcelas(df_actividades)
     resumen = resumen_estado_parcelas(estado_parcelas)
-    inicial = f"RESUMEN ACTUAL: <br> ✅ En estado **óptimo**: {resumen['Óptimo']}<br>" + f"⚠️ Requieren **atención**: {resumen['Atención']}<br>" + f"🚨 En estado **crítico**: {resumen['Crítico']}"
+    inicial = f"RESUMEN ACTUAL: <br> ✅ En estado **óptimo**: {resumen['Óptimo']}<br>" + \
+              f"⚠️ Requieren **atención**: {resumen['Atención']}<br>" + \
+              f"🚨 En estado **crítico**: {resumen['Crítico']}"
 
-    
     if "messages" not in st.session_state:
         st.session_state["messages"] = [{"role": "assistant", "content": inicial}]
 
-    chatbot_structure(df_actividades, detalles_df, evaluar_estado_parcelas(df_actividades))
+    chatbot_structure(df_actividades, pd.DataFrame(), estado_parcelas)
 
-    
-
-
-# page footer
     for _ in range(5):
         st.sidebar.markdown("\n", unsafe_allow_html=True)
     st.sidebar.markdown("---")
