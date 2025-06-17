@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.db import SessionLocal
 from typing import List
+from shapely.geometry import mapping
+from geoalchemy2.shape import to_shape
 
 router = APIRouter(
     prefix="/ubicaciones",
@@ -28,9 +30,19 @@ def crear_ubicacion(ubicacion: schemas.UbicacionCreate, db: Session = Depends(ge
     db.refresh(nueva_ubicacion)
     return nueva_ubicacion
 
-@router.get("/{ubicacion_id}", response_model=schemas.UbicacionOut)
+@router.get("/{ubicacion_id}")
 def obtener_ubicacion(ubicacion_id: int, db: Session = Depends(get_db)):
     ubicacion = db.query(models.Ubicacion).filter(models.Ubicacion.id == ubicacion_id).first()
     if not ubicacion:
         raise HTTPException(status_code=404, detail="Ubicación no encontrada")
-    return ubicacion
+    return ubicacion_to_dict(ubicacion)  # ← retorna dict serializable
+
+def ubicacion_to_dict(ubicacion):
+    return {
+        "id": ubicacion.id,
+        "tipo": ubicacion.tipo,
+        "coordenadas": mapping(to_shape(ubicacion.coordenadas)),  # ← convierte a GeoJSON
+        "referencia": ubicacion.referencia
+    }
+
+

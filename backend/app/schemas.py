@@ -2,6 +2,8 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import date
 from geojson_pydantic import Polygon, Point, Feature  # Para GeoJSON en entrada/salida
+from typing import Dict, Any
+
 
 # ---------- USUARIO ----------
 
@@ -105,4 +107,12 @@ class DetalleActividadOut(DetalleActividadCreate):
 
     class Config:
         orm_mode = True
+
+# ---------- CHAT ----------
+
+class ChatRequest(BaseModel):
+    prompt: str
+    actividades: List[Dict[str, Any]]
+    detalles: List[Dict[str, Any]]
+    estado_parcelas: Dict[str, List[str]]  # o Dict[str, Any] si es más general
 
