@@ -1,8 +1,3 @@
-Aquí tienes una versión mejorada y profesional del `README.md` para el proyecto **AgroVista**:
-
----
-
-````markdown
 # 🌱 AgroVista – Gestión Inteligente de Terrenos Agrícolas
 
 **AgroVista** es una plataforma visual e interactiva para monitorear, registrar y analizar la actividad de terrenos agrícolas y sus subdivisiones. Utiliza mapas, trazabilidad y registros históricos para empoderar a propietarios, administradores y encargados en la toma de decisiones estratégicas.
@@ -40,24 +35,21 @@ Aquí tienes una versión mejorada y profesional del `README.md` para el proyect
 ```bash
 git clone https://github.com/ersebreck/agrovista.git
 cd agrovista
-````
+```
 
 ### 2. Crear y activar entorno virtual
-
 ```bash
 conda create -n agrovista python=3.11
 conda activate agrovista
 ```
 
 ### 3. Instalar dependencias
-
 ```bash
 pip install -r backend/requirements.txt
 pip install -r frontend/requirements.txt
 ```
 
 ### 4. Iniciar PostgreSQL + PostGIS y poblar la base de datos
-
 ```bash
 bash agrovista_local_setup.sh
 ```
@@ -68,8 +60,8 @@ Esto activará el entorno, verificará la base de datos y lanzará automáticame
 
 ## 🧪 Acceso a la App
 
-* **Backend API (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
-* **Frontend (Mapa interactivo):** [http://localhost:8501](http://localhost:8501)
+- **Backend API (Swagger):** http://localhost:8000/docs
+- **Frontend (Mapa interactivo):** http://localhost:8501
 
 ---
 
@@ -94,12 +86,12 @@ agrovista/
 
 ## 🧭 Roadmap (Futuro)
 
-* ✅ Dashboards con KPIs
-* ⏳ Registro de costos operativos
-* ⏳ Simulación productiva (rendimiento vs inversión)
-* ⏳ App móvil para recolección en campo
-* ⏳ Acceso multiusuario y control de roles
-* ⏳ Exportación de reportes PDF/Excel
+- ✅ Dashboards con KPIs
+- ⏳ Registro de costos operativos
+- ⏳ Simulación productiva (rendimiento vs inversión)
+- ⏳ App móvil para recolección en campo
+- ⏳ Acceso multiusuario y control de roles
+- ⏳ Exportación de reportes PDF/Excel
 
 ---
 
@@ -111,8 +103,7 @@ Este proyecto nació como un MVP práctico pero tiene aplicación real. Si te in
 
 ## 👨‍💻 Autor
 
-**Erick Sebastián Lozano Roa**
-🔗 [LinkedIn](https://www.linkedin.com/in/erick-lozano) – 🤖 Investigador en IA, optimización y tecnología agrícola
+**Erick Sebastián Lozano Roa**  
+🔗 [LinkedIn](https://www.linkedin.com/in/erick-lozano-roa) – 🤖 Investigador en IA, optimización y tecnología agrícola
 
 ---
-
