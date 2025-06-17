@@ -1,17 +1,13 @@
 import streamlit as st
 from streamlit_folium import st_folium
-from utils import (
-    evaluar_estado_parcelas,
-    resumen_estado_parcelas,
-    cargar_datos
-)
+from utils import evaluar_estado_parcelas, resumen_estado_parcelas, cargar_datos
 from map import construir_mapa
 from views import mostrar_frecuencia, mostrar_detalles, mostrar_ultimas
 from chat import chatbot_structure
 import pandas as pd
 import os
 
-os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
+# Configuración de la página
 st.set_page_config(layout="wide")
 
 st.markdown("""
@@ -30,7 +26,6 @@ hoy = pd.Timestamp.today().normalize()
 # ------------------------------
 
 df_actividades, parcelas_df, terrenos_df, parcelas_ids = cargar_datos()
-
 # ------------------------------
 # 🗺️ Mapa interactivo
 # ------------------------------
@@ -88,7 +83,7 @@ with st.sidebar:
 
     chatbot_structure(df_actividades, pd.DataFrame(), estado_parcelas)
 
-    for _ in range(5):
+    for _ in range(4):
         st.sidebar.markdown("\n", unsafe_allow_html=True)
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Desarrollado por:\n**ERICK SEBASTIAN LOZANO ROA 🤖**")

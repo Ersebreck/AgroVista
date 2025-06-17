@@ -7,8 +7,8 @@ from langchain.chat_models import init_chat_model
 import os
 from dotenv import load_dotenv
 import pandas as pd
-from data_simulation import simular_datos, parcelas
-from utils import evaluar_estado_parcelas
+from .data_simulation import simular_datos, parcelas
+from .utils import evaluar_estado_parcelas
 
 load_dotenv()
 # Setup Claude 3.5

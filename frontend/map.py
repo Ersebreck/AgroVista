@@ -75,6 +75,7 @@ def construir_mapa(df_actividades):
         # Buscar id de parcela
         parcela_id = None
         for key, val in estados.items():
+            
             if df_actividades[df_actividades["parcela_id"] == key]["nombre"].iloc[0] == nombre:
                 parcela_id = key
                 break

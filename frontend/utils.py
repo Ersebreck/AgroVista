@@ -49,7 +49,7 @@ def evaluar_estado_parcelas(df_actividades):
         if grupo["tipo"].isin(["Cosecha", "Ordeño", "Pesaje"]).any():
             estado.append("Tiene productividad")
 
-        estado_parcelas[f"id:{parcela_id}"] = estado
+        estado_parcelas[parcela_id] = estado
 
     return estado_parcelas
 
