@@ -3,9 +3,7 @@ from streamlit_folium import st_folium
 from utils import (
     evaluar_estado_parcelas,
     resumen_estado_parcelas,
-    obtener_terrenos,
-    obtener_parcelas_por_terreno,
-    obtener_actividades_por_parcela
+    cargar_datos
 )
 from map import construir_mapa
 from views import mostrar_frecuencia, mostrar_detalles, mostrar_ultimas
@@ -30,23 +28,8 @@ hoy = pd.Timestamp.today().normalize()
 # ------------------------------
 # 🔄 Carga real desde el backend
 # ------------------------------
-terrenos = obtener_terrenos()
-parcelas = []
-for terreno in terrenos:
-    parcelas += obtener_parcelas_por_terreno(terreno["id"])
 
-df_actividades = []
-for parcela in parcelas:
-    acts = obtener_actividades_por_parcela(parcela["id"])
-    for act in acts:
-        act["nombre"] = parcela["nombre"]
-    df_actividades += acts
-
-df_actividades = pd.DataFrame(df_actividades)
-df_actividades["fecha"] = pd.to_datetime(df_actividades["fecha"], errors="coerce")
-parcelas_df = pd.DataFrame(parcelas)
-terrenos_df = pd.DataFrame(terrenos)
-parcelas_ids = {row["nombre"]: row["id"] for _, row in parcelas_df.iterrows()}
+df_actividades, parcelas_df, terrenos_df, parcelas_ids = cargar_datos()
 
 # ------------------------------
 # 🗺️ Mapa interactivo
