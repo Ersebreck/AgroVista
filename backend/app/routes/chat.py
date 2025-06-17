@@ -1,22 +1,16 @@
-from fastapi import APIRouter, Request
-from pydantic import BaseModel
-from app.chat_logic import preparar_contexto, responder_consulta
-from app.schemas import ChatRequest
+# backend/app/routes/chat.py
 
+from fastapi import APIRouter
+from app.schemas import ChatPrompt
+from app.chat_logic import generar_contexto_y_responder
+from app.data_simulation import simular_datos, parcelas
+from app.utils import evaluar_estado_parcelas
 
-router = APIRouter(
-    prefix="/chat",
-    tags=["Chat"]
-)
-
-class ChatRequest(BaseModel):
-    prompt: str
-    actividades: list
-    detalles: list
-    estado_parcelas: dict
+router = APIRouter()
 
 @router.post("/chat")
-def chat_endpoint(request: ChatRequest):
-    contexto = preparar_contexto(request.actividades, request.detalles, request.estado_parcelas)
-    respuesta = responder_consulta(request.prompt, contexto)
+def chat_endpoint(input: ChatPrompt):
+    df_actividades, detalles_df = simular_datos(parcelas)
+    estado_parcelas = evaluar_estado_parcelas(df_actividades)
+    respuesta = generar_contexto_y_responder(input.prompt, df_actividades, detalles_df, estado_parcelas)
     return {"respuesta": respuesta}

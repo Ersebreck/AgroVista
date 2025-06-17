@@ -112,7 +112,4 @@ class DetalleActividadOut(DetalleActividadCreate):
 
 class ChatRequest(BaseModel):
     prompt: str
-    actividades: List[Dict[str, Any]]
-    detalles: List[Dict[str, Any]]
-    estado_parcelas: Dict[str, List[str]]  # o Dict[str, Any] si es más general
 
