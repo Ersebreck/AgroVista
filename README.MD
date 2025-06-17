@@ -2,7 +2,7 @@
 
 **AgroVista** es una plataforma visual e interactiva para monitorear, registrar y analizar la actividad de terrenos agrícolas y sus subdivisiones. Utiliza mapas, trazabilidad y registros históricos para empoderar a propietarios, administradores y encargados en la toma de decisiones estratégicas.
 
----
+
 
 ## 🚀 Características principales
 
@@ -27,7 +27,7 @@
 | Embeddings       | LangChain + SentenceTransformers  |
 | Contenedores     | Docker (opcional)                 |
 
----
+
 
 ## 🔧 Instalación local (sin Docker)
 
@@ -56,14 +56,14 @@ bash agrovista_local_setup.sh
 
 Esto activará el entorno, verificará la base de datos y lanzará automáticamente el backend y el frontend.
 
----
+
 
 ## 🧪 Acceso a la App
 
 - **Backend API (Swagger):** http://localhost:8000/docs
 - **Frontend (Mapa interactivo):** http://localhost:8501
 
----
+
 
 ## 🧠 Estructura del Proyecto
 
@@ -82,7 +82,7 @@ agrovista/
 └── docker-compose.yml         # Configuración para despliegue con contenedores
 ```
 
----
+
 
 ## 🧭 Roadmap (Futuro)
 
@@ -93,13 +93,13 @@ agrovista/
 - ⏳ Acceso multiusuario y control de roles
 - ⏳ Exportación de reportes PDF/Excel
 
----
+
 
 ## 🤝 Colaboraciones
 
 Este proyecto nació como un MVP práctico pero tiene aplicación real. Si te interesa integrarlo con sensores, visión por dron, modelos de predicción o gestión ganadera, ¡bienvenido!
 
----
+
 
 ## 👨‍💻 Autor
 
