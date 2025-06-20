@@ -1,6 +1,72 @@
 import folium
-from utils import evaluar_estado_parcelas
 from folium import GeoJson, GeoJsonTooltip
+import streamlit as st
+from streamlit_folium import st_folium
+from utils import evaluar_estado_parcelas, resumen_estado_parcelas, cargar_datos
+from views import mostrar_kpis_parcela, mostrar_presupuesto_vs_ejecucion
+from views import mostrar_kpis_terreno, mostrar_presupuesto_vs_ejecucion_terreno
+from views import mostrar_ultimas
+from chat import chatbot_structure
+import pandas as pd
+
+def vista_mapa():
+    st.title("🌱 AgroVista")
+
+    hoy = pd.Timestamp.today().normalize()
+    df_actividades, parcelas_df, terrenos_df, parcelas_ids = cargar_datos()
+
+    col1, col2 = st.columns([5, 4])
+    with col1:
+        st.write("### Mapa interactivo")
+        mapa = construir_mapa(df_actividades)
+        output = st_folium(mapa, width=600, height=400)
+
+    with col2:
+        clicked = output.get("last_object_clicked_tooltip")
+        if clicked:
+            clicked = clicked.split("\n")[-2].replace("  ", "")
+            st.markdown(f"#### 📊 {clicked}")
+            if clicked in parcelas_ids:
+                parcela_id = parcelas_ids[clicked]
+                df_parcela = df_actividades[df_actividades["nombre"] == clicked]
+                mostrar_kpis_parcela(df_parcela)
+                st.markdown("### 💸 Presupuesto vs Ejecución")
+                mostrar_presupuesto_vs_ejecucion(parcela_id)
+                st.markdown("### 📝 Últimas actividades")
+                mostrar_ultimas(df_parcela)
+            else:
+
+                terreno_id = terrenos_df[terrenos_df["nombre"] == clicked]["id"].values[0]
+                parcelas_terreno = parcelas_df[parcelas_df["terreno_id"] == terreno_id]
+                parcela_ids = parcelas_terreno["id"].tolist()
+                df_terreno = df_actividades[df_actividades["parcela_id"].isin(parcela_ids)]
+                with st.expander("📌 Parcelas asociadas"):
+                    for _, row in parcelas_terreno.iterrows():
+                        st.markdown(f"- **{row['nombre']}** ({row['uso_actual']})")
+                mostrar_kpis_terreno(df_terreno)
+                st.markdown("### 💸 Presupuesto vs Ejecución")
+                mostrar_presupuesto_vs_ejecucion_terreno(parcela_ids)
+                
+        else:
+            st.markdown("## Haz clic en una parcela o terreno para ver más información.")
+
+    # Chatbot lateral
+    st.sidebar.markdown("---")
+
+    with st.sidebar:
+        estado_parcelas = evaluar_estado_parcelas(df_actividades)
+        resumen = resumen_estado_parcelas(estado_parcelas)
+        inicial = f"RESUMEN ACTUAL: <br> ✅ En estado **óptimo**: {resumen['Óptimo']}<br>" + \
+                  f"⚠️ Requieren **atención**: {resumen['Atención']}<br>" + \
+                  f"🚨 En estado **crítico**: {resumen['Crítico']}"
+        if "messages" not in st.session_state:
+            st.session_state["messages"] = [{"role": "assistant", "content": inicial}]
+        chatbot_structure(df_actividades, pd.DataFrame(), estado_parcelas)
+        for _ in range(4):
+            st.sidebar.markdown("\n", unsafe_allow_html=True)
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("### Desarrollado por:\n**ERICK SEBASTIAN LOZANO ROA 🤖**")
+
 
 def add_geojson_polygon(grupo, name, coords, color, opacity):
     feature = {
