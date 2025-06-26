@@ -8,6 +8,7 @@ pgdata/
 .vscode/
 .idea/
 *.log
+pdfs/
 
 # Docker
 *.pid
@@ -16,5 +17,5 @@ pgdata/
 *.tar
 *.bak
 
-# Conda env
-env/
+# environment
+.venv

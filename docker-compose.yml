@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: usuario
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - "5434:5434"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -16,7 +16,7 @@ services:
     build:
       context: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg2://usuario:password@db:5432/agrovista
+      DATABASE_URL: postgresql+psycopg2://usuario:password@db:5434/agrovista
     depends_on:
       - db
     ports:

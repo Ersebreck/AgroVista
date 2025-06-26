@@ -113,3 +113,9 @@ class DetalleActividadOut(DetalleActividadCreate):
 class ChatRequest(BaseModel):
     prompt: str
 
+class ChatPrompt(BaseModel):
+    prompt: str
+
+class ChatResponse(BaseModel):
+    respuesta: str
+    

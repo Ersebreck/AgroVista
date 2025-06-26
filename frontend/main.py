@@ -73,7 +73,7 @@ with col2:
 # ------------------------------
 # 🤖 Chatbot + resumen de estado
 # ------------------------------
-st.sidebar.markdown("### 🌱 Chatbot AgroVista <br>Versión 0.1", unsafe_allow_html=True)
+st.sidebar.markdown("### 🌱 Chatbot AgroVista", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 
 with st.sidebar:

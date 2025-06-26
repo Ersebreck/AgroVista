@@ -9,7 +9,7 @@ DB_NAME = "agrovista"
 DB_USER = "usuario"
 DB_PASSWORD = "password"
 DB_HOST = "localhost"
-DB_PORT = "5432"
+DB_PORT = "5434"
 
 def create_database():
     conn = psycopg2.connect(

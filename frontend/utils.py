@@ -55,7 +55,13 @@ def evaluar_estado_parcelas(df_actividades):
 
 
 def cargar_datos():
-    terrenos = obtener_terrenos()
+    # Revisar que la conexion con el backend esta bien
+    try:
+        terrenos = obtener_terrenos()
+    except Exception as e:
+        print(f"Error al obtener terrenos: {e}")
+        return [], [], [], {}
+    
     parcelas = []
     for terreno in terrenos:
         parcelas += obtener_parcelas_por_terreno(terreno["id"])

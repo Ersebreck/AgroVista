@@ -75,12 +75,12 @@ def construir_mapa(df_actividades):
         # Buscar id de parcela
         parcela_id = None
         for key, val in estados.items():
-            if df_actividades[df_actividades["parcela_id"] == key]["nombre"].iloc[0] == nombre:
-                parcela_id = key
+            parcela_id = int(key.split(":")[1])
+            if df_actividades[df_actividades["parcela_id"] == parcela_id]["nombre"].iloc[0] == nombre:
                 break
 
         if parcela_id:
-            resumen_estado = estados[parcela_id]
+            resumen_estado = estados[f"id:{parcela_id}"]
             if "Inactiva" in resumen_estado:
                 emoji = emoji_por_estado["Crítico"]
             elif "Pendiente de intervención" in resumen_estado:
