@@ -2,8 +2,13 @@ from datetime import date, timedelta
 from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Polygon
-from app.models import Usuario, Terreno, Parcela, Ubicacion, Actividad, DetalleActividad
+from app.models import (
+    Usuario, Terreno, Parcela, Ubicacion, Actividad, DetalleActividad,
+    Transaccion, Inventario, EventoInventario, Indicador
+)
 import random
+import pandas as pd
+from app.data_simulation import simular_transacciones, simular_inventario, simular_indicadores
 
 def create_users(db: Session):
     admin = Usuario(nombre="Admin", correo="admin@agro.com", contrasena="admin123", rol="admin")
@@ -125,3 +130,37 @@ def create_terrenos_y_parcelas(db: Session, propietario):
             if detalle:
                 db.add(detalle)
                 db.commit()
+
+    # --------------------------
+    # NUEVAS ENTIDADES
+    # --------------------------
+    parcelas_creadas = db.query(Parcela).all()
+
+    # Transacciones
+    df_transacciones = simular_transacciones(pd.DataFrame([p.__dict__ for p in parcelas_creadas]))
+    for row in df_transacciones.to_dict(orient="records"):
+        db.add(Transaccion(**row))
+    db.commit()
+
+    # Inventario y eventos
+    df_inv, df_eventos = simular_inventario(pd.DataFrame([p.__dict__ for p in parcelas_creadas]))
+    inventario_id_map = {}
+    for row in df_inv.to_dict(orient="records"):
+        inv = Inventario(**row)
+        db.add(inv)
+        db.flush()
+        inventario_id_map[row["id"]] = inv.id
+    db.commit()
+
+    for ev in df_eventos.to_dict(orient="records"):
+        ev["inventario_id"] = inventario_id_map.get(ev["inventario_id"], 1)
+        db.add(EventoInventario(**ev))
+    db.commit()
+
+    # Indicadores
+    df_ind = simular_indicadores(pd.DataFrame([p.__dict__ for p in parcelas_creadas]))
+    for row in df_ind.to_dict(orient="records"):
+        db.add(Indicador(**row))
+    db.commit()
+
+    print("✅ Base poblada con actividades, inventario, transacciones e indicadores.")

@@ -18,8 +18,8 @@ class UsuarioCreate(UsuarioBase):
 class UsuarioOut(UsuarioBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
+
 
 
 # ---------- UBICACION ----------
@@ -35,8 +35,8 @@ class UbicacionCreate(UbicacionBase):
 class UbicacionOut(UbicacionBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
+
 
 
 # ---------- TERRENO ----------
@@ -53,8 +53,8 @@ class TerrenoCreate(TerrenoBase):
 class TerrenoOut(TerrenoBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
+
 
 
 # ---------- PARCELA ----------
@@ -72,8 +72,8 @@ class ParcelaCreate(ParcelaBase):
 class ParcelaOut(ParcelaBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
+
 
 
 # ---------- ACTIVIDAD ----------
@@ -91,8 +91,8 @@ class ActividadCreate(ActividadBase):
 class ActividadOut(ActividadBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
+
 
 # ---------- DETALLE ACTIVIDAD ----------
 
@@ -105,17 +105,150 @@ class DetalleActividadCreate(BaseModel):
 class DetalleActividadOut(DetalleActividadCreate):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
+
 
 # ---------- CHAT ----------
 
 class ChatRequest(BaseModel):
     prompt: str
 
-class ChatPrompt(BaseModel):
-    prompt: str
 
-class ChatResponse(BaseModel):
-    respuesta: str
-    
+# ---------- INVENTARIO Y EVENTO INVENTARIO ----------
+
+class InventarioBase(BaseModel):
+    nombre: str
+    tipo: str
+    cantidad_actual: float
+    unidad: str
+    parcela_id: Optional[int] = None
+
+class InventarioCreate(InventarioBase):
+    pass
+
+class InventarioOut(InventarioBase):
+    id: int
+    model_config = {"from_attributes": True}
+
+
+class EventoInventarioBase(BaseModel):
+    inventario_id: int
+    actividad_id: Optional[int] = None
+    tipo_movimiento: str  # entrada / salida
+    cantidad: float
+    fecha: date
+    observacion: Optional[str] = None
+
+class EventoInventarioCreate(EventoInventarioBase):
+    pass
+
+class EventoInventarioOut(EventoInventarioBase):
+    id: int
+    model_config = {"from_attributes": True}
+
+
+
+# ---------- TRANSACCIÓN Y PRESUPUESTO ----------
+
+class TransaccionBase(BaseModel):
+    fecha: date
+    tipo: str  # ingreso / gasto
+    categoria: str
+    descripcion: Optional[str]
+    monto: float
+    parcela_id: int
+    actividad_id: Optional[int] = None
+
+class TransaccionCreate(TransaccionBase):
+    pass
+
+class TransaccionOut(TransaccionBase):
+    id: int
+    model_config = {"from_attributes": True}
+
+
+class PresupuestoBase(BaseModel):
+    anio: int
+    categoria: str
+    monto_estimado: float
+    parcela_id: int
+
+class PresupuestoCreate(PresupuestoBase):
+    pass
+
+class PresupuestoOut(PresupuestoBase):
+    id: int
+    model_config = {"from_attributes": True}
+
+
+
+# ---------- PARÁMETROS BIOLÓGICOS Y SIMULACIÓN ----------
+
+class ParametroBiologicoBase(BaseModel):
+    nombre: str
+    valor: float
+    unidad: Optional[str] = None
+    descripcion: Optional[str] = None
+    parcela_id: int
+
+class ParametroBiologicoCreate(ParametroBiologicoBase):
+    pass
+
+class ParametroBiologicoOut(ParametroBiologicoBase):
+    id: int
+    model_config = {"from_attributes": True}
+
+
+class SimulacionBase(BaseModel):
+    nombre: str
+    descripcion: Optional[str]
+    fecha_creacion: date
+    parametros: Optional[Dict[str, Any]] = None
+    resultados: Optional[Dict[str, Any]] = None
+    usuario_id: int
+
+class SimulacionCreate(SimulacionBase):
+    pass
+
+class SimulacionOut(SimulacionBase):
+    id: int
+    model_config = {"from_attributes": True}
+
+
+
+# ---------- HISTORIAL CAMBIOS Y KPI ----------
+
+class HistorialCambioBase(BaseModel):
+    tabla: str
+    campo: str
+    valor_anterior: Optional[str]
+    valor_nuevo: Optional[str]
+    fecha: date
+    usuario_id: int
+    motivo: Optional[str] = None
+
+class HistorialCambioCreate(HistorialCambioBase):
+    pass
+
+class HistorialCambioOut(HistorialCambioBase):
+    id: int
+    model_config = {"from_attributes": True}
+
+
+class IndicadorBase(BaseModel):
+    nombre: str
+    valor: float
+    unidad: Optional[str] = None
+    fecha: date
+    parcela_id: int
+    descripcion: Optional[str] = None
+
+class IndicadorCreate(IndicadorBase):
+    pass
+
+class IndicadorOut(IndicadorBase):
+    id: int
+    model_config = {"from_attributes": True}
+
+
+
