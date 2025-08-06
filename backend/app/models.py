@@ -1,203 +1,305 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text,  Float, Boolean
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
-from geoalchemy2 import Geometry
+import os
+
+from sqlalchemy import (
+    JSON,
+    Column,
+    Date,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import declarative_base, relationship
+
+# Conditional imports for geo types
+TESTING = os.getenv("TESTING", "False").lower() == "true"
+if not TESTING:
+    try:
+        from geoalchemy2 import Geometry
+
+        GEOMETRY_TYPE = Geometry(geometry_type="GEOMETRY", srid=4326)
+        JSON_TYPE = JSONB
+    except ImportError:
+        # Fallback for environments without PostGIS
+        GEOMETRY_TYPE = Text
+        JSON_TYPE = JSON
+else:
+    # Use Text and JSON for testing with SQLite
+    GEOMETRY_TYPE = Text
+    JSON_TYPE = JSON
 
 Base = declarative_base()
 
-class Usuario(Base):
-    __tablename__ = 'usuarios'
+
+class User(Base):
+    """User model for authentication and authorization."""
+
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, nullable=False)
-    correo = Column(String, unique=True, nullable=False)
-    contrasena = Column(String, nullable=False)
-    rol = Column(String, nullable=False)  # e.g. "propietario", "encargado", "admin"
+    name = Column(String, nullable=False)  # User full name
+    email = Column(String, unique=True, nullable=False)  # Email address
+    password = Column(String, nullable=False)  # Password (should be hashed)
+    role = Column(String, nullable=False)  # Role: "owner", "manager", "admin"
 
-    actividades = relationship("Actividad", back_populates="usuario")
-    simulaciones = relationship("Simulacion", backref="usuario", cascade="all, delete-orphan")
-    cambios = relationship("HistorialCambio", backref="usuario", cascade="all, delete-orphan")
-
-
-class Terreno(Base):
-    __tablename__ = 'terrenos'
-
-    id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, nullable=False)
-    descripcion = Column(Text)
-    propietario_id = Column(Integer, ForeignKey("usuarios.id"))
-    ubicacion_id = Column(Integer, ForeignKey("ubicaciones.id"))
-
-    propietario = relationship("Usuario")
-    parcelas = relationship("Parcela", back_populates="terreno")
+    # Relationships
+    activities = relationship("Activity", back_populates="user")
+    simulations = relationship(
+        "Simulation", backref="user", cascade="all, delete-orphan"
+    )
+    changes = relationship(
+        "ChangeHistory", backref="user", cascade="all, delete-orphan"
+    )
 
 
-class Parcela(Base):
-    __tablename__ = 'parcelas'
+class Terrain(Base):
+    """Terrain model representing large land areas containing multiple parcels."""
+
+    __tablename__ = "terrains"
 
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, nullable=False)
-    uso_actual = Column(String)
-    estado = Column(String)
-    terreno_id = Column(Integer, ForeignKey("terrenos.id"))
-    ubicacion_id = Column(Integer, ForeignKey("ubicaciones.id"))
+    name = Column(String, nullable=False)  # Terrain name
+    description = Column(Text)  # Optional description
+    owner_id = Column(Integer, ForeignKey("users.id"))  # Owner reference
+    location_id = Column(Integer, ForeignKey("locations.id"))  # Location reference
 
-    terreno = relationship("Terreno", back_populates="parcelas")
-    actividades = relationship("Actividad", back_populates="parcela")
-    inventarios = relationship("Inventario", backref="parcela", cascade="all, delete-orphan")
-    transacciones = relationship("Transaccion", backref="parcela", cascade="all, delete-orphan")
-    presupuestos = relationship("Presupuesto", backref="parcela", cascade="all, delete-orphan")
-    indicadores = relationship("Indicador", backref="parcela", cascade="all, delete-orphan")
-    parametros_biologicos = relationship("ParametroBiologico", backref="parcela", cascade="all, delete-orphan")
+    # Relationships
+    owner = relationship("User")
+    parcels = relationship("Parcel", back_populates="terrain")
 
 
+class Parcel(Base):
+    """Parcel model representing individual land units for specific agricultural activities."""
 
-class Actividad(Base):
-    __tablename__ = 'actividades'
-
-    id = Column(Integer, primary_key=True)
-    tipo = Column(String, nullable=False)  # e.g. "Fertilización", "Cosecha", "Pesaje"
-    fecha = Column(Date, nullable=False)
-    descripcion = Column(Text)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
-    parcela_id = Column(Integer, ForeignKey("parcelas.id"))
-
-    usuario = relationship("Usuario", back_populates="actividades")
-    parcela = relationship("Parcela", back_populates="actividades")
-    detalles = relationship("DetalleActividad", back_populates="actividad", cascade="all, delete-orphan")
-    eventos_inventario = relationship("EventoInventario", backref="actividad", cascade="all, delete-orphan")
-
-
-class DetalleActividad(Base):
-    __tablename__ = 'detalle_actividad'
-
-    id = Column(Integer, primary_key=True)
-    actividad_id = Column(Integer, ForeignKey("actividades.id"))
-    nombre = Column(String, nullable=False)  # e.g. "Fertilizante", "Kg cosechados", "Peso ganado"
-    valor = Column(String, nullable=False)   # puede ser número, texto, unidad
-    unidad = Column(String, nullable=True)   # e.g. "kg", "l", "m3", "cabezas"
-
-    actividad = relationship("Actividad", back_populates="detalles")
-
-
-class Ubicacion(Base):
-    __tablename__ = 'ubicaciones'
+    __tablename__ = "parcels"
 
     id = Column(Integer, primary_key=True, index=True)
-    tipo = Column(String, nullable=False)  # "punto" o "poligono"
-    coordenadas = Column(Geometry(geometry_type='GEOMETRY', srid=4326))  # PostGIS
-    referencia = Column(JSONB, nullable=True)  # info opcional
+    name = Column(String, nullable=False)  # Parcel name
+    current_use = Column(String)  # Current use: "corn", "pasture", "greenhouse", etc.
+    status = Column(String)  # Status: "active", "maintenance", "fallow"
+    terrain_id = Column(Integer, ForeignKey("terrains.id"))  # Parent terrain
+    location_id = Column(Integer, ForeignKey("locations.id"))  # Geographic location
 
-    terrenos = relationship("Terreno", backref="ubicacion")
-    parcelas = relationship("Parcela", backref="ubicacion")
-    
-# -------------------------
-# INVENTARIO Y MOVIMIENTO
-# -------------------------
-
-class Inventario(Base):
-    __tablename__ = 'inventarios'
-
-    id = Column(Integer, primary_key=True)
-    nombre = Column(String, nullable=False)
-    tipo = Column(String, nullable=False)  # ej: "Fertilizante", "Concentrado", "Maquinaria"
-    cantidad_actual = Column(Float, nullable=False)
-    unidad = Column(String, nullable=False)  # ej: "kg", "l", "unidades"
-    parcela_id = Column(Integer, ForeignKey("parcelas.id"), nullable=True)
-
-    movimientos = relationship("EventoInventario", back_populates="inventario")
-
-class EventoInventario(Base):
-    __tablename__ = 'eventos_inventario'
-
-    id = Column(Integer, primary_key=True)
-    inventario_id = Column(Integer, ForeignKey("inventarios.id"))
-    actividad_id = Column(Integer, ForeignKey("actividades.id"), nullable=True)
-    tipo_movimiento = Column(String, nullable=False)  # "entrada" o "salida"
-    cantidad = Column(Float, nullable=False)
-    fecha = Column(Date, nullable=False)
-    observacion = Column(Text, nullable=True)
-
-    inventario = relationship("Inventario", back_populates="movimientos")
+    # Relationships
+    terrain = relationship("Terrain", back_populates="parcels")
+    activities = relationship("Activity", back_populates="parcel")
+    inventories = relationship(
+        "Inventory", backref="parcel", cascade="all, delete-orphan"
+    )
+    transactions = relationship(
+        "Transaction", backref="parcel", cascade="all, delete-orphan"
+    )
+    budgets = relationship("Budget", backref="parcel", cascade="all, delete-orphan")
+    indicators = relationship(
+        "Indicator", backref="parcel", cascade="all, delete-orphan"
+    )
+    biological_parameters = relationship(
+        "BiologicalParameter", backref="parcel", cascade="all, delete-orphan"
+    )
 
 
-# -------------------------
-# ECONOMÍA Y PRESUPUESTO
-# -------------------------
+class Activity(Base):
+    """Activity model for tracking agricultural operations performed on parcels."""
 
-class Transaccion(Base):
-    __tablename__ = 'transacciones'
+    __tablename__ = "activities"
 
     id = Column(Integer, primary_key=True)
-    fecha = Column(Date, nullable=False)
-    tipo = Column(String, nullable=False)  # "gasto" o "ingreso"
-    categoria = Column(String, nullable=False)  # ej: "compra fertilizante", "venta leche"
-    descripcion = Column(Text)
-    monto = Column(Float, nullable=False)
-    parcela_id = Column(Integer, ForeignKey("parcelas.id"))
-    actividad_id = Column(Integer, ForeignKey("actividades.id"), nullable=True)
+    type = Column(
+        String, nullable=False
+    )  # Activity type: "Fertilization", "Harvest", "Weighing", "Irrigation"
+    date = Column(Date, nullable=False)  # Date when activity was performed
+    description = Column(Text)  # Optional detailed description
+    user_id = Column(Integer, ForeignKey("users.id"))  # User who performed the activity
+    parcel_id = Column(Integer, ForeignKey("parcels.id"))  # Target parcel
 
-class Presupuesto(Base):
-    __tablename__ = 'presupuestos'
-
-    id = Column(Integer, primary_key=True)
-    anio = Column(Integer, nullable=False)
-    categoria = Column(String, nullable=False)
-    monto_estimado = Column(Float, nullable=False)
-    parcela_id = Column(Integer, ForeignKey("parcelas.id"))
-
-
-# -------------------------
-# PARÁMETROS Y SIMULACIONES
-# -------------------------
-
-class ParametroBiologico(Base):
-    __tablename__ = 'parametros_biologicos'
-
-    id = Column(Integer, primary_key=True)
-    nombre = Column(String, nullable=False)  # ej: "crecimiento ganado", "ciclo cultivo"
-    valor = Column(Float, nullable=False)
-    unidad = Column(String, nullable=True)   # ej: "kg/mes", "días"
-    descripcion = Column(Text)
-    parcela_id = Column(Integer, ForeignKey("parcelas.id"))
+    # Relationships
+    user = relationship("User", back_populates="activities")
+    parcel = relationship("Parcel", back_populates="activities")
+    details = relationship(
+        "ActivityDetail", back_populates="activity", cascade="all, delete-orphan"
+    )
+    inventory_events = relationship(
+        "InventoryEvent", backref="activity", cascade="all, delete-orphan"
+    )
 
 
-class Simulacion(Base):
-    __tablename__ = 'simulaciones'
+class ActivityDetail(Base):
+    """Activity detail model for storing specific measurements and data from activities."""
+
+    __tablename__ = "activity_details"
 
     id = Column(Integer, primary_key=True)
-    nombre = Column(String, nullable=False)
-    descripcion = Column(Text)
-    fecha_creacion = Column(Date, nullable=False)
-    parametros = Column(JSONB, nullable=True)
-    resultados = Column(JSONB, nullable=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
+    activity_id = Column(Integer, ForeignKey("activities.id"))
+    name = Column(
+        String, nullable=False
+    )  # Measurement name: "Water used", "Kg harvested"
+    value = Column(String, nullable=False)  # Value: "800", "300"
+    unit = Column(String, nullable=True)  # Unit: "l", "kg"
+
+    # Relationships
+    activity = relationship("Activity", back_populates="details")
+
+
+class Location(Base):
+    """Location model for storing geographic coordinates using PostGIS."""
+
+    __tablename__ = "locations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    type = Column(String, nullable=False)  # Type: "point", "polygon"
+    coordinates = Column(GEOMETRY_TYPE)  # PostGIS Geometry or Text for testing
+    reference = Column(JSON_TYPE, nullable=True)  # Additional reference data
+
+    # Relationships
+    terrains = relationship("Terrain", backref="location")
+    parcels = relationship("Parcel", backref="location")
 
 
 # -------------------------
-# TRAZABILIDAD Y KPIs
+# INVENTORY AND MOVEMENT
 # -------------------------
 
-class HistorialCambio(Base):
-    __tablename__ = 'historial_cambios'
+
+class Inventory(Base):
+    """Inventory model for tracking supplies and materials."""
+
+    __tablename__ = "inventories"
 
     id = Column(Integer, primary_key=True)
-    tabla = Column(String, nullable=False)
-    campo = Column(String, nullable=False)
-    valor_anterior = Column(String, nullable=True)
-    valor_nuevo = Column(String, nullable=True)
-    fecha = Column(Date, nullable=False)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
-    motivo = Column(Text)
+    name = Column(String, nullable=False)  # Item name: "NPK fertilizer", "Pesticide 1"
+    type = Column(String, nullable=False)  # Type: "fertilizer", "pesticide", "vaccine"
+    current_quantity = Column(Float, nullable=False)  # Current quantity available
+    unit = Column(String, nullable=False)  # Unit: "kg", "l", "dose"
+    parcel_id = Column(
+        Integer, ForeignKey("parcels.id"), nullable=True
+    )  # Associated parcel
 
-class Indicador(Base):
-    __tablename__ = 'indicadores'
+    # Relationships
+    movements = relationship("InventoryEvent", back_populates="inventory")
+
+
+class InventoryEvent(Base):
+    """Inventory event model for tracking inventory movements (in/out)."""
+
+    __tablename__ = "inventory_events"
 
     id = Column(Integer, primary_key=True)
-    nombre = Column(String, nullable=False)
-    valor = Column(Float, nullable=False)
-    unidad = Column(String, nullable=True)
-    fecha = Column(Date, nullable=False)
-    parcela_id = Column(Integer, ForeignKey("parcelas.id"))
-    descripcion = Column(Text)
+    inventory_id = Column(Integer, ForeignKey("inventories.id"))
+    activity_id = Column(
+        Integer, ForeignKey("activities.id"), nullable=True
+    )  # Optional activity link
+    movement_type = Column(
+        String, nullable=False
+    )  # Movement type: "inbound", "outbound", "adjustment"
+    quantity = Column(Float, nullable=False)  # Quantity moved
+    date = Column(Date, nullable=False)  # Date of movement
+    observation = Column(Text, nullable=True)  # Optional observation
+
+    # Relationships
+    inventory = relationship("Inventory", back_populates="movements")
+
+
+# -------------------------
+# ECONOMY AND BUDGET
+# -------------------------
+
+
+class Transaction(Base):
+    """Transaction model for financial tracking (income and expenses)."""
+
+    __tablename__ = "transactions"
+
+    id = Column(Integer, primary_key=True)
+    date = Column(Date, nullable=False)  # Transaction date
+    type = Column(String, nullable=False)  # Type: "expense" or "income"
+    category = Column(
+        String, nullable=False
+    )  # Category: "fertilizer purchase", "milk sales"
+    description = Column(Text)  # Optional description
+    amount = Column(Float, nullable=False)  # Amount
+    parcel_id = Column(Integer, ForeignKey("parcels.id"))  # Associated parcel
+    activity_id = Column(
+        Integer, ForeignKey("activities.id"), nullable=True
+    )  # Related activity
+
+
+class Budget(Base):
+    """Budget model for planning yearly expenses by category."""
+
+    __tablename__ = "budgets"
+
+    id = Column(Integer, primary_key=True)
+    year = Column(Integer, nullable=False)  # Budget year
+    category = Column(String, nullable=False)  # Expense category
+    estimated_amount = Column(Float, nullable=False)  # Estimated amount
+    parcel_id = Column(Integer, ForeignKey("parcels.id"))  # Associated parcel
+
+
+# -------------------------
+# PARAMETERS AND SIMULATIONS
+# -------------------------
+
+
+class BiologicalParameter(Base):
+    """Biological parameter model for storing growth rates and biological data."""
+
+    __tablename__ = "biological_parameters"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(
+        String, nullable=False
+    )  # Parameter name: "livestock growth", "crop cycle"
+    value = Column(Float, nullable=False)  # Parameter value
+    unit = Column(String, nullable=True)  # Unit: "kg/month", "days"
+    description = Column(Text)  # Description
+    parcel_id = Column(Integer, ForeignKey("parcels.id"))  # Associated parcel
+
+
+class Simulation(Base):
+    """Simulation model for storing projection scenarios and results."""
+
+    __tablename__ = "simulations"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)  # Simulation name
+    description = Column(Text)  # Description
+    creation_date = Column(Date, nullable=False)  # Creation date
+    parameters = Column(JSON_TYPE, nullable=True)  # Input parameters (JSON)
+    results = Column(JSON_TYPE, nullable=True)  # Simulation results (JSON)
+    user_id = Column(Integer, ForeignKey("users.id"))  # Creator user
+
+
+# -------------------------
+# TRACEABILITY AND KPIs
+# -------------------------
+
+
+class ChangeHistory(Base):
+    """Change history model for auditing data modifications."""
+
+    __tablename__ = "change_history"
+
+    id = Column(Integer, primary_key=True)
+    table = Column(String, nullable=False)  # Table name that was modified
+    field = Column(String, nullable=False)  # Field name that was modified
+    previous_value = Column(String, nullable=True)  # Previous value
+    new_value = Column(String, nullable=True)  # New value
+    date = Column(Date, nullable=False)  # Change date
+    user_id = Column(Integer, ForeignKey("users.id"))  # User who made the change
+    reason = Column(Text)  # Reason for the change
+
+
+class Indicator(Base):
+    """Indicator model for storing KPIs and performance metrics."""
+
+    __tablename__ = "indicators"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)  # Indicator name
+    value = Column(Float, nullable=False)  # Indicator value
+    unit = Column(String, nullable=True)  # Unit of measurement
+    date = Column(Date, nullable=False)  # Measurement date
+    parcel_id = Column(Integer, ForeignKey("parcels.id"))  # Associated parcel
+    description = Column(Text)  # Description

@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# Instalar librerías del sistema necesarias para psycopg2 y GeoAlchemy2
+# Install system libraries required for psycopg2 and GeoAlchemy2
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
@@ -9,10 +9,10 @@ RUN apt-get update && apt-get install -y \
     libgdal-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Crear carpeta de trabajo
+# Create working directory
 WORKDIR /app
 
-# Copiar dependencias y código
+# Copy dependencies and code
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install uv
 RUN uv pip install --system -r requirements.txt

@@ -11,5 +11,17 @@ geojson_pydantic
 pydantic[email]
 langchain_community
 langchain_huggingface
-langchain-anthropic
-sentence-transformers
+
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-env>=0.8.2
+httpx>=0.24.1
+factory-boy>=3.3.0
+faker>=19.2.0
+
+# Code quality and formatting
+ruff>=0.12.0
+

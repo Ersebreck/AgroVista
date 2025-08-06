@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""
+Test script to verify the new modular structure works correctly.
+"""
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    print("1. Testing configuration import...")
+    from app.core.config import get_settings
+    settings = get_settings()
+    print(f"   ✓ Config loaded. App name: {settings.APP_NAME}")
+    
+    print("\n2. Testing logging setup...")
+    from app.core.logging import setup_logging
+    logger = setup_logging()
+    print("   ✓ Logging configured")
+    
+    print("\n3. Testing exception imports...")
+    from app.core.exceptions import TerrainNotFoundException, domain_exception_to_http
+    print("   ✓ Exception classes imported")
+    
+    print("\n4. Testing domain model imports...")
+    from app.domain.farming.models import Terrain, Parcel, Location
+    print("   ✓ Domain models imported")
+    
+    print("\n5. Testing schema imports...")
+    from app.domain.farming.schemas import TerrainCreate, TerrainUpdate, Terrain as TerrainSchema
+    print("   ✓ Domain schemas imported")
+    
+    print("\n6. Testing repository imports...")
+    from app.infrastructure.repositories.base import BaseRepository
+    from app.infrastructure.repositories.terrain_repository import TerrainRepository
+    print("   ✓ Repository classes imported")
+    
+    print("\n7. Testing service imports...")
+    from app.application.services.terrain_service import TerrainService
+    print("   ✓ Service classes imported")
+    
+    print("\n8. Testing API route imports...")
+    from app.api.v1.routes.terrains import router as terrain_router
+    print("   ✓ API routes imported")
+    
+    print("\n9. Testing dependency imports...")
+    from app.core.dependencies import get_db, ServiceDependencies, RepositoryDependencies
+    print("   ✓ Dependencies imported")
+    
+    print("\n10. Testing API v1 router...")
+    from app.api.v1 import api_router
+    print(f"    ✓ API v1 router imported. Routes: {[route.path for route in api_router.routes]}")
+    
+    print("\n✅ All imports successful! The new modular structure is working correctly.")
+    
+except ImportError as e:
+    print(f"\n❌ Import error: {e}")
+    print(f"   Module: {e.name if hasattr(e, 'name') else 'unknown'}")
+    print(f"   Path: {e.path if hasattr(e, 'path') else 'unknown'}")
+    sys.exit(1)
+except Exception as e:
+    print(f"\n❌ Unexpected error: {e}")
+    sys.exit(1)
