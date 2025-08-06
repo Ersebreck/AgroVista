@@ -1,19 +1,54 @@
+from typing import Dict
+
 from fastapi import FastAPI
-from app.routes import (terrenos, parcelas, ubicaciones, actividades, 
-                        chat, economia, inventario, simulacion,
-                        control)
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+from app.routes import (
+    activities,
+    chat,
+    control,
+    economy,
+    inventory,
+    locations,
+    parcels,
+    simulation,
+    terrains,
+)
 
-app.include_router(terrenos.router)
-app.include_router(parcelas.router)
-app.include_router(ubicaciones.router)
-app.include_router(actividades.router)
+# Create FastAPI application
+app = FastAPI(
+    title="AgroVista API",
+    description="Agricultural land management platform API",
+    version="1.0.0",
+)
+
+# CORS middleware for development (adjust allow_origins for production)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "*"
+    ],  # Specify ["http://localhost:8501"] to only allow local Streamlit
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include all route modules
+app.include_router(terrains.router)
+app.include_router(parcels.router)
+app.include_router(locations.router)
+app.include_router(activities.router)
 app.include_router(chat.router)
-app.include_router(economia.router)
-app.include_router(inventario.router)
-app.include_router(simulacion.router)
+app.include_router(economy.router)
+app.include_router(inventory.router)
+app.include_router(simulation.router)
 app.include_router(control.router)
+
+
 @app.get("/")
-def read_root():
-    return {"message": "Bienvenido a la API de AgroVista. Usa los endpoints para interactuar con los datos agrícolas."}
+def read_root() -> Dict[str, str]:
+    """Root endpoint with welcome message."""
+    return {
+        "message": "Welcome to AgroVista API. Use the endpoints to interact with agricultural data.",
+        "docs": "Visit /docs for interactive API documentation",
+    }

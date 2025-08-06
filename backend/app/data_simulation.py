@@ -1,194 +1,462 @@
-import pandas as pd
 import random
 from datetime import date, timedelta
+from typing import Any, Dict, List, Tuple
+
+import pandas as pd
 
 # ----------------------
-# DATOS ESTÁTICOS BASE
+# STATIC BASE DATA
 # ----------------------
 
-terrenos = pd.DataFrame([
-    {"id": 1, "nombre": "Terreno 1", "descripcion": "Cultivo mixto de hortalizas"},
-    {"id": 2, "nombre": "Terreno 2", "descripcion": "Ganadería y forraje"},
-])
+terrains = pd.DataFrame(
+    [
+        {"id": 1, "name": "Terrain 1", "description": "Mixed vegetable cultivation"},
+        {"id": 2, "name": "Terrain 2", "description": "Livestock and forage"},
+    ]
+)
 
-parcelas = pd.DataFrame([
-    {"id": 1, "nombre": "Parcela 1A", "terreno_id": 1, "uso_actual": "Maíz joven", "estado": "activo", "dias_sin_actividad": 1},
-    {"id": 2, "nombre": "Parcela 1B", "terreno_id": 1, "uso_actual": "Tomate en invernadero", "estado": "activo", "dias_sin_actividad": 2},
-    {"id": 3, "nombre": "Parcela 2A", "terreno_id": 2, "uso_actual": "Pasto", "estado": "activo", "dias_sin_actividad": 7},
-    {"id": 4, "nombre": "Parcela 2B", "terreno_id": 2, "uso_actual": "Corrales", "estado": "mantenimiento", "dias_sin_actividad": 12},
-])
+parcels = pd.DataFrame(
+    [
+        {
+            "id": 1,
+            "name": "Parcel 1A",
+            "terrain_id": 1,
+            "current_use": "Young corn",
+            "status": "active",
+            "days_without_activity": 1,
+        },
+        {
+            "id": 2,
+            "name": "Parcel 1B",
+            "terrain_id": 1,
+            "current_use": "Greenhouse tomato",
+            "status": "active",
+            "days_without_activity": 2,
+        },
+        {
+            "id": 3,
+            "name": "Parcel 2A",
+            "terrain_id": 2,
+            "current_use": "Pasture",
+            "status": "active",
+            "days_without_activity": 7,
+        },
+        {
+            "id": 4,
+            "name": "Parcel 2B",
+            "terrain_id": 2,
+            "current_use": "Pens",
+            "status": "maintenance",
+            "days_without_activity": 12,
+        },
+    ]
+)
 
-parcelas_info = {
-    'Terreno 1': "🌽 Cultivo mixto de maíz y tomate.",
-    'Parcela 1A': "🌱 Maíz joven.",
-    'Parcela 1B': "🍅 Tomate bajo invernadero.",
-    'Terreno 2': "🐄 Zona de ganadería y forraje.",
-    'Parcela 2A': "🌾 Pasto para rotación.",
-    'Parcela 2B': "🐖 Corrales en mantenimiento.",
+parcel_info = {
+    "Terrain 1": " Mixed corn and tomato cultivation.",
+    "Parcel 1A": " Young corn.",
+    "Parcel 1B": " Greenhouse tomato.",
+    "Terrain 2": " Livestock and forage zone.",
+    "Parcel 2A": " Rotation pasture.",
+    "Parcel 2B": " Maintenance pens.",
 }
 
-tipos_actividad = [
-    "Riego", "Fertilización", "Fumigación", "Cosecha",
-    "Siembra", "Limpieza", "Pesaje", "Vacunación", "Ordeño"
+activity_types = [
+    "Irrigation",
+    "Fertilization",
+    "Fumigation",
+    "Harvest",
+    "Planting",
+    "Cleaning",
+    "Weighing",
+    "Vaccination",
+    "Milking",
 ]
 
+# Legacy variables for backwards compatibility
+terrenos = terrains
+parcelas = parcels
+parcelas_info = parcel_info
+tipos_actividad = activity_types
+
+# Column name mappings for backward compatibility
+terrain_column_mapping = {"nombre": "name", "descripcion": "description"}
+parcel_column_mapping = {
+    "nombre": "name",
+    "terreno_id": "terrain_id",
+    "uso_actual": "current_use",
+    "estado": "status",
+    "dias_sin_actividad": "days_without_activity",
+}
+
 # ----------------------
-# FUNCIONES SIMULADORAS
+# SIMULATION FUNCTIONS
 # ----------------------
 
-def generar_actividad(parcela_id, nombre_parcela, fecha_base, cantidad=5):
-    actividades = []
-    for i in range(cantidad):
-        tipo = random.choice(tipos_actividad)
-        fecha = fecha_base - timedelta(days=i)
-        actividades.append({
-            "parcela_id": parcela_id,
-            "nombre": nombre_parcela,
-            "tipo": tipo,
-            "descripcion": f"{tipo} realizada en campo",
-            "fecha": fecha
-        })
-    return actividades
+
+def generate_activity(
+    parcel_id: int, parcel_name: str, base_date: date, quantity: int = 5
+) -> List[Dict[str, Any]]:
+    """
+    Generate simulated activities for a parcel.
+
+    Args:
+        parcel_id: ID of the parcel
+        parcel_name: Name of the parcel
+        base_date: Base date for activity generation
+        quantity: Number of activities to generate
+
+    Returns:
+        List of activity dictionaries
+    """
+    activities = []
+    for i in range(quantity):
+        activity_type = random.choice(activity_types)
+        activity_date = base_date - timedelta(days=i)
+        activities.append(
+            {
+                "parcel_id": parcel_id,
+                "name": parcel_name,
+                "type": activity_type,
+                "description": f"{activity_type} performed in field",
+                "date": activity_date,
+            }
+        )
+    return activities
+
+
+def generate_activity_details(activities_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Generate detailed information for activities.
+
+    Args:
+        activities_df: DataFrame containing activities
+
+    Returns:
+        DataFrame with activity details
+    """
+    details = []
+
+    for activity in activities_df.itertuples():
+        activity_type = getattr(activity, "type", getattr(activity, "tipo", None))
+        if activity_type == "Fertilization":
+            details.append(
+                {
+                    "activity_id": activity.id,
+                    "name": "NPK Fertilizer",
+                    "value": 50,
+                    "unit": "kg",
+                }
+            )
+        elif activity_type == "Harvest":
+            details.append(
+                {
+                    "activity_id": activity.id,
+                    "name": "Kg harvested",
+                    "value": random.randint(800, 1500),
+                    "unit": "kg",
+                }
+            )
+        elif activity_type == "Irrigation":
+            details.append(
+                {
+                    "activity_id": activity.id,
+                    "name": "Water used",
+                    "value": random.randint(200, 800),
+                    "unit": "l",
+                }
+            )
+        elif activity_type == "Weighing":
+            details.append(
+                {
+                    "activity_id": activity.id,
+                    "name": "Livestock weight",
+                    "value": random.randint(300, 600),
+                    "unit": "kg",
+                }
+            )
+        elif activity_type == "Vaccination":
+            details.append(
+                {
+                    "activity_id": activity.id,
+                    "name": "Vaccine applied",
+                    "value": "Foot and Mouth",
+                    "unit": "dose",
+                }
+            )
+        elif activity_type == "Milking":
+            details.append(
+                {
+                    "activity_id": activity.id,
+                    "name": "Liters milked",
+                    "value": random.randint(10, 30),
+                    "unit": "l",
+                }
+            )
+
+    return pd.DataFrame(details)
+
+
+# Legacy function names for backwards compatibility
+def generar_actividad(
+    parcela_id: int, nombre_parcela: str, fecha_base: date, cantidad: int = 5
+) -> List[Dict[str, Any]]:
+    """Legacy wrapper for generate_activity"""
+    return generate_activity(parcela_id, nombre_parcela, fecha_base, cantidad)
+
 
 def generar_detalles(df_actividades: pd.DataFrame) -> pd.DataFrame:
-    detalles = []
+    """Legacy wrapper for generate_activity_details"""
+    return generate_activity_details(df_actividades)
 
-    for actividad in df_actividades.itertuples():
-        if actividad.tipo == "Fertilización":
-            detalles.append({"actividad_id": actividad.id, "nombre": "Fertilizante NPK", "valor": 50, "unidad": "kg"})
-        elif actividad.tipo == "Cosecha":
-            detalles.append({"actividad_id": actividad.id, "nombre": "Kg cosechados", "valor": random.randint(800, 1500), "unidad": "kg"})
-        elif actividad.tipo == "Riego":
-            detalles.append({"actividad_id": actividad.id, "nombre": "Agua utilizada", "valor": random.randint(200, 800), "unidad": "l"})
-        elif actividad.tipo == "Pesaje":
-            detalles.append({"actividad_id": actividad.id, "nombre": "Peso ganado", "valor": random.randint(300, 600), "unidad": "kg"})
-        elif actividad.tipo == "Vacunación":
-            detalles.append({"actividad_id": actividad.id, "nombre": "Vacuna aplicada", "valor": "Fiebre Aftosa", "unidad": "dosis"})
-        elif actividad.tipo == "Ordeño":
-            detalles.append({"actividad_id": actividad.id, "nombre": "Litros ordeñados", "valor": random.randint(10, 30), "unidad": "l"})
-        # puedes agregar más aquí fácilmente
-
-    return pd.DataFrame(detalles)
 
 # ----------------------
-# SIMULACIÓN DE TRANSACCIONES
-# ----------------------
-
-def simular_transacciones(parcelas_df: pd.DataFrame, n_por_parcela: int = 3) -> pd.DataFrame:
-    categorias_gasto = ["Compra fertilizante", "Riego mecanizado", "Mantenimiento maquinaria", "Compra alimento animal"]
-    categorias_ingreso = ["Venta maíz", "Venta leche", "Venta ganado"]
-
-    transacciones = []
-    hoy = date.today()
-
-    for _, parcela in parcelas_df.iterrows():
-        for _ in range(n_por_parcela):
-            tipo = random.choice(["gasto", "ingreso"])
-            categoria = random.choice(categorias_ingreso if tipo == "ingreso" else categorias_gasto)
-            monto = round(random.uniform(100, 1000), 2) if tipo == "gasto" else round(random.uniform(500, 2000), 2)
-
-            transacciones.append({
-                "parcela_id": parcela["id"],
-                "fecha": hoy - timedelta(days=random.randint(1, 60)),
-                "tipo": tipo,
-                "categoria": categoria,
-                "descripcion": f"{tipo.capitalize()} registrado automáticamente",
-                "monto": monto
-            })
-
-    return pd.DataFrame(transacciones)
-
-# ----------------------
-# SIMULACIÓN DE INVENTARIO
+# TRANSACTION SIMULATION
 # ----------------------
 
 
-def simular_inventario(parcelas_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    tipos_insumo = ["Fertilizante NPK", "Alimento ganado", "Vacuna bovina", "Pesticida"]
-    inventario = []
-    eventos = []
+def simulate_transactions(
+    parcels_df: pd.DataFrame, transactions_per_parcel: int = 3
+) -> pd.DataFrame:
+    """
+    Simulate financial transactions for parcels.
+
+    Args:
+        parcels_df: DataFrame containing parcel information
+        transactions_per_parcel: Number of transactions to generate per parcel
+
+    Returns:
+        DataFrame with simulated transactions
+    """
+    expense_categories = [
+        "Fertilizer purchase",
+        "Mechanized irrigation",
+        "Machinery maintenance",
+        "Animal feed purchase",
+    ]
+    income_categories = ["Corn sales", "Milk sales", "Livestock sales"]
+    categories = ["Material supplies", "Labor", "Maintenance", "Consulting", "Others"]
+    today = date.today()
+    transactions = []
+
+    for _, parcel in parcels_df.iterrows():
+        for _ in range(transactions_per_parcel):
+            transaction_type = random.choice(["expense", "income"])
+            category = random.choice(
+                income_categories
+                if transaction_type == "income"
+                else expense_categories
+            )
+            amount = (
+                round(random.uniform(100, 1000), 2)
+                if transaction_type == "expense"
+                else round(random.uniform(500, 2000), 2)
+            )
+
+            transactions.append(
+                {
+                    "parcel_id": parcel["id"],
+                    "date": today - timedelta(days=random.randint(1, 60)),
+                    "type": transaction_type,
+                    "category": category,
+                    "description": f"{transaction_type.capitalize()} automatically recorded",
+                    "amount": amount,
+                }
+            )
+
+    for _, parcel in parcels_df.iterrows():
+        for _ in range(transactions_per_parcel):
+            category = random.choice(categories)
+            amount = round(random.uniform(100, 5000), 2)
+            is_income = random.choice([True, False])
+            transaction_date = today - timedelta(days=random.randint(1, 90))
+
+            transactions.append(
+                {
+                    "parcel_id": parcel["id"],
+                    "concept": f"{category} {'income' if is_income else 'expense'}",
+                    "amount": amount if is_income else -amount,
+                    "date": transaction_date,
+                    "category": category,
+                    "type": "income" if is_income else "expense",
+                }
+            )
+
+    return pd.DataFrame(transactions).sort_values("date", ascending=False)
+
+
+# Legacy function for backwards compatibility
+def simular_transacciones(
+    parcelas_df: pd.DataFrame, n_por_parcela: int = 3
+) -> pd.DataFrame:
+    """Legacy wrapper for simulate_transactions"""
+    return simulate_transactions(parcelas_df, n_por_parcela)
+
+
+# ----------------------
+# INVENTORY SIMULATION
+# ----------------------
+
+
+def simulate_inventory(parcels_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Simulate inventory and inventory events for parcels.
+
+    Args:
+        parcels_df: DataFrame containing parcel information
+
+    Returns:
+        Tuple of (inventory_df, events_df)
+    """
+    supply_types = ["NPK Fertilizer", "Livestock feed", "Bovine vaccine", "Pesticide"]
+    inventory = []
+    events = []
     id_counter = 1
-    hoy = date.today()
+    today = date.today()
 
-    for _, parcela in parcelas_df.iterrows():
-        for insumo in tipos_insumo:
-            cantidad = round(random.uniform(50, 500), 2)
-            unidad = "kg" if "Fertilizante" in insumo else "l" if "Pesticida" in insumo else "dosis"
-            inventario.append({
-                "id": id_counter,
-                "nombre": insumo,
-                "tipo": insumo.split()[0],
-                "cantidad_actual": cantidad,
-                "unidad": unidad,
-                "parcela_id": parcela["id"]
-            })
+    for _, parcel in parcels_df.iterrows():
+        for supply in supply_types:
+            quantity = round(random.uniform(50, 500), 2)
+            unit = (
+                "kg"
+                if "Fertilizer" in supply
+                else "l"
+                if "Pesticide" in supply
+                else "dose"
+            )
+            inventory.append(
+                {
+                    "id": id_counter,
+                    "name": supply,
+                    "type": supply.split()[0],
+                    "current_quantity": quantity,
+                    "unit": unit,
+                    "parcel_id": parcel["id"],
+                }
+            )
 
-            # Un evento de consumo
-            eventos.append({
-                "inventario_id": id_counter,
-                "actividad_id": None,
-                "tipo_movimiento": "salida",
-                "cantidad": round(random.uniform(5, 30), 2),
-                "fecha": hoy - timedelta(days=random.randint(1, 20)),
-                "observacion": "Consumo rutinario"
-            })
+            # Create a consumption event
+            events.append(
+                {
+                    "inventory_id": id_counter,
+                    "activity_id": None,
+                    "movement_type": "outbound",
+                    "quantity": round(random.uniform(5, 30), 2),
+                    "date": today - timedelta(days=random.randint(1, 20)),
+                    "observation": "Routine consumption",
+                }
+            )
             id_counter += 1
 
-    return pd.DataFrame(inventario), pd.DataFrame(eventos)
+    return pd.DataFrame(inventory), pd.DataFrame(events)
+
+
+# Legacy function for backwards compatibility
+def simular_inventario(parcelas_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Legacy wrapper for simulate_inventory"""
+    return simulate_inventory(parcelas_df)
+
 
 # ----------------------
-# SIMULACIÓN DE INDICADORES
+# INDICATORS SIMULATION
 # ----------------------
 
 
-def simular_indicadores(parcelas_df: pd.DataFrame) -> pd.DataFrame:
-    indicadores = []
-    hoy = date.today()
+def simulate_indicators(parcels_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Simulate performance indicators for parcels.
 
-    for _, parcela in parcelas_df.iterrows():
-        indicadores += [
+    Args:
+        parcels_df: DataFrame containing parcel information
+
+    Returns:
+        DataFrame with simulated indicators
+    """
+    indicators = []
+    today = date.today()
+
+    for _, parcel in parcels_df.iterrows():
+        indicators += [
             {
-                "parcela_id": parcela["id"],
-                "nombre": "Avance operativo",
-                "valor": round(random.uniform(60, 100), 1),
-                "unidad": "%",
-                "fecha": hoy,
-                "descripcion": "Porcentaje de tareas completadas en el mes"
+                "parcel_id": parcel["id"],
+                "name": "Operational progress",
+                "value": round(random.uniform(60, 100), 1),
+                "unit": "%",
+                "date": today,
+                "description": "Percentage of tasks completed this month",
             },
             {
-                "parcela_id": parcela["id"],
-                "nombre": "Producción acumulada",
-                "valor": round(random.uniform(800, 3000), 2),
-                "unidad": "kg",
-                "fecha": hoy,
-                "descripcion": "Volumen estimado cosechado"
+                "parcel_id": parcel["id"],
+                "name": "Cumulative production",
+                "value": round(random.uniform(800, 3000), 2),
+                "unit": "kg",
+                "date": today,
+                "description": "Estimated harvested volume",
             },
         ]
 
-    return pd.DataFrame(indicadores)
-
+    return pd.DataFrame(indicators)
 
 
 # ----------------------
-# FUNCIÓN PRINCIPAL
+# MAIN SIMULATION FUNCTION
 # ----------------------
 
-def simular_datos(parcelas_df: pd.DataFrame):
-    hoy = date.today()
-    actividades = []
 
-    for _, row in parcelas_df.iterrows():
-        base_date = hoy - timedelta(days=row["dias_sin_actividad"])
-        actividades += generar_actividad(row["id"], row["nombre"], base_date)
+def simulate_data(
+    parcels_df: pd.DataFrame,
+) -> Tuple[
+    pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
+]:
+    """
+    Generate complete simulated agricultural data.
 
-    df_actividades = pd.DataFrame(actividades).reset_index(drop=True)
-    df_actividades["id"] = df_actividades.index + 1
-    df_actividades["fecha"] = pd.to_datetime(df_actividades["fecha"])
-    df_transacciones = simular_transacciones(parcelas)
-    df_inventario, df_eventos = simular_inventario(parcelas)
-    df_indicadores = simular_indicadores(parcelas)
+    Args:
+        parcels_df: DataFrame containing parcel information
+
+    Returns:
+        Tuple of (activities_df, details_df, transactions_df, inventory_df, events_df, indicators_df)
+    """
+    today = date.today()
+    activities = []
+
+    for _, row in parcels_df.iterrows():
+        # Handle both old and new column names for backward compatibility
+        days_inactive = row.get(
+            "days_without_activity", row.get("dias_sin_actividad", 0)
+        )
+        parcel_name = row.get("name", row.get("nombre", ""))
+        base_date = today - timedelta(days=days_inactive)
+        activities += generate_activity(row["id"], parcel_name, base_date)
+
+    activities_df = pd.DataFrame(activities).reset_index(drop=True)
+    activities_df["id"] = activities_df.index + 1
+    # Handle both old and new column names
+    if "date" in activities_df.columns:
+        activities_df["date"] = pd.to_datetime(activities_df["date"])
+    elif "fecha" in activities_df.columns:
+        activities_df["fecha"] = pd.to_datetime(activities_df["fecha"])
+
+    transactions_df = simulate_transactions(parcels)
+    inventory_df, events_df = simulate_inventory(parcels)
+    indicators_df = simulate_indicators(parcels)
+    details_df = generate_activity_details(activities_df)
+
+    return (
+        activities_df,
+        details_df,
+        transactions_df,
+        inventory_df,
+        events_df,
+        indicators_df,
+    )
 
 
-    detalles_df = generar_detalles(df_actividades)
-
-    return df_actividades, detalles_df, df_transacciones, df_inventario, df_eventos, df_indicadores
+# Legacy function for backwards compatibility
+def simular_datos(
+    parcelas_df: pd.DataFrame,
+) -> Tuple[
+    pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
+]:
+    """Legacy wrapper for simulate_data"""
+    return simulate_data(parcelas_df)
