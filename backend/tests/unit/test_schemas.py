@@ -1,25 +1,28 @@
 """
 Unit tests for Pydantic schemas.
 """
-import pytest
 from datetime import date
+
+import pytest
 from pydantic import ValidationError
 
 from app.schemas import (
-    UserCreate, UserOut,
-    TerrainCreate, TerrainOut,
-    ParcelCreate, ParcelOut,
-    ActivityCreate, ActivityOut,
-    ActivityDetailCreate, ActivityDetailOut,
-    InventoryCreate, InventoryOut,
-    InventoryEventCreate, InventoryEventOut,
-    TransactionCreate, TransactionOut,
-    BudgetCreate, BudgetOut,
-    BiologicalParameterCreate, BiologicalParameterOut,
-    SimulationCreate, SimulationOut,
-    ChangeHistoryCreate, ChangeHistoryOut,
-    IndicatorCreate, IndicatorOut,
-    ChatRequest
+    ActivityCreate,
+    ActivityDetailCreate,
+    BiologicalParameterCreate,
+    BudgetCreate,
+    ChangeHistoryCreate,
+    ChatRequest,
+    IndicatorCreate,
+    InventoryCreate,
+    InventoryEventCreate,
+    ParcelCreate,
+    SimulationCreate,
+    TerrainCreate,
+    TerrainOut,
+    TransactionCreate,
+    UserCreate,
+    UserOut,
 )
 
 

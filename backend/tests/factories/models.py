@@ -2,14 +2,22 @@
 Factory classes for generating test data.
 """
 from datetime import datetime, timedelta
+
 import factory
 from factory import fuzzy
 from faker import Faker
 
 from app.models import (
-    User, Terrain, Parcel, Activity, ActivityDetail,
-    Location, Inventory, InventoryEvent, Transaction,
-    Budget, BiologicalParameter, Simulation, ChangeHistory, Indicator
+    Activity,
+    ActivityDetail,
+    Budget,
+    Inventory,
+    InventoryEvent,
+    Location,
+    Parcel,
+    Terrain,
+    Transaction,
+    User,
 )
 
 fake = Faker()

@@ -1,8 +1,6 @@
 """
 Unit tests for economy routes.
 """
-import pytest
-from datetime import date, datetime
 from fastapi import status
 
 

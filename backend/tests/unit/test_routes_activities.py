@@ -1,8 +1,6 @@
 """
 Unit tests for activity routes.
 """
-import pytest
-from datetime import date
 from fastapi import status
 
 

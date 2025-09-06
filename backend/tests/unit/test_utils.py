@@ -1,20 +1,20 @@
 """
 Unit tests for utility functions.
 """
-import pytest
 from datetime import datetime, timedelta
+
 from app.utils import (
-    get_current_date,
-    format_date,
     calculate_days_difference,
-    get_status_color,
-    generate_summary_text,
-    validate_date_range,
     calculate_percentage,
     format_currency,
+    format_date,
+    generate_summary_text,
     generate_unique_id,
+    get_current_date,
+    get_status_color,
     is_valid_email,
-    sanitize_string
+    sanitize_string,
+    validate_date_range,
 )
 
 
