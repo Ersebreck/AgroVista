@@ -42,6 +42,6 @@ gnome-terminal -- bash -c "cd backend && uvicorn app.main:app --reload --port 80
 sleep 2
 
 echo "🌐 Levantando Frontend (Streamlit)..."
-gnome-terminal -- bash -c "cd frontend && streamlit run main.py; exec bash"
+gnome-terminal -- bash -c "cd frontend && uv run streamlit run app.py; exec bash"
 
 echo "✅ Sistema iniciado. Backend en http://localhost:8000/docs, Frontend en http://localhost:8501"
