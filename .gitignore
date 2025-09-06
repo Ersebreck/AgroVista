@@ -1,7 +1,6 @@
 __pycache__/
 *.pyc
 .env
-.env.*
 *.sqlite3
 pgdata/
 .envrc
@@ -9,6 +8,8 @@ pgdata/
 .idea/
 *.log
 pdfs/
+.claude/
+.windsurf/
 
 # Docker
 *.pid
@@ -16,6 +17,8 @@ pdfs/
 *.db
 *.tar
 *.bak
+*.txt
+*.pdf
 
 # environment
 .venv

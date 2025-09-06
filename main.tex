@@ -1,0 +1,189 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{float}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{MVP Agricultural Land Project}
+\lhead{Erick Lozano Roa}
+\rfoot{\thepage}
+
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\title{AgroVista \\ Agricultural Land Visualization Software}
+\author{Erick Lozano Roa}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Part 1 – Project Objective}
+
+\subsection{Main Objective:} Allow agricultural landowners to visualize and manage, in a simple and centralized way, the information of their large properties and subdivisions (plots), including general and specific data for each.
+
+\subsection{Problem to Solve:} Currently, there is no clear, accessible, and visual way to monitor or access key information about agricultural plots and lands, making decision-making and operational control difficult.
+
+\section{Part 2 – User Stories}
+
+\subsection*{Role: Owner}
+\begin{itemize}[label=--]
+  \item As an owner, I want to see a visual map with all my large lands and their subdivisions to get a quick overview of the state of my properties.
+  \item As an owner, I want to access a summary of each plot to make strategic decisions about its use.
+\end{itemize}
+
+\subsection*{Role: User (Manager)}
+\begin{itemize}[label=--]
+  \item As a user, I want to select a plot and record completed tasks to maintain an up-to-date history.
+  \item As a user, I want to visualize specific information for each plot to perform tasks correctly.
+\end{itemize}
+
+\subsection*{Role: Administrator}
+\begin{itemize}[label=--]
+  \item As an administrator, I want to create, edit, and delete lands and plots to keep the system up to date.
+  \item As an administrator, I want to manage each user's permissions to control access to information.
+\end{itemize}
+
+\section{Part 3 – Data Modeling}
+
+\subsection*{Entity: User}
+Fields: id, name, email, password, role.
+
+\subsection*{Entity: Land}
+Fields: id, name, description, owner\_id, location\_id.
+
+\subsection*{Entity: Plot}
+Fields: id, name, current\_use, status, land\_id, location\_id.
+
+\subsection*{Entity: Activity}
+Fields: id, type, date, description, user\_id, plot\_id.
+
+\subsection*{Entity: Geospatial Location}
+Fields: id, type (point or polygon), coordinates (GeoJSON), reference (optional).
+
+\section{Part 4 – Minimum Viable Product (MVP)}
+
+\textbf{Includes:}
+\begin{itemize}
+  \item Visualization of lands and plots on a map.
+  \item Detailed view of plots.
+  \item Activity logging.
+  \item Basic data creation and editing (admin).
+  \item Report generation (optional).
+  \item Support for recursive subdivisions at multiple levels.
+\end{itemize}
+
+\section{Part 5 – Wireframes}
+
+\textbf{Key Guidelines:}
+\begin{itemize}
+  \item Focus the design around a central map.
+  \item Split the interface into map + side panel.
+  \item Design progressive views (general → detailed).
+  \item Use icons or colors to differentiate states.
+\end{itemize}
+
+\subsection{Wireframes}
+
+Below is the first iteration:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/p_principal.png}
+    \caption{Main screen}
+    \label{fig:enter-label}
+\end{figure}
+
+On clicking the blue bar:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/p_azul.png}
+    \caption{Slider bar}
+    \label{fig:enter-label}
+\end{figure}
+\vspace{1 in}
+On clicking the map:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/p_mapa_g_1.png}
+    \caption{Screen with general map}
+    \label{fig:enter-label}
+\end{figure}
+
+On clicking the red map:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/p_mapa_g_2.png}
+    \caption{Screen with divided map}
+    \label{fig:enter-label}
+\end{figure}
+
+On clicking a sub-land:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/p_mapa_p.png}
+    \caption{Screen with plot map}
+    \label{fig:enter-label}
+\end{figure}
+
+\vspace{1 in}
+
+\section{Part 6 – Future Scope of the Project}
+
+\begin{itemize}
+  \item Short-term project for practice, but with real potential for use.
+  \item Potential real clients to validate the MVP.
+  \item Scalable to a SaaS system for land management.
+\end{itemize}
+
+\section{Part 7 – System Components}
+
+\subsection*{Web Frontend}
+\textbf{Tool:} Streamlit.\\
+\textbf{Functionality:} Interactive map and information cards visualization.
+
+\subsection*{Backend}
+\textbf{Tool:} FastAPI.\\
+\textbf{Functionality:} Expose data and basic system logic.
+
+\subsection*{Database}
+\textbf{Tool:} PostgreSQL + PostGIS.\\
+\textbf{Functionality:} Storage for structured and spatial data.
+
+\subsection*{Geospatial Visualization}
+\textbf{Tool:} Folium or Pydeck.\\
+\textbf{Functionality:} Interactive map on the user interface.
+
+\section{Part 8 – Technology Stack}
+
+\begin{itemize}
+  \item \textbf{Frontend:} Streamlit + Folium.
+  \item \textbf{Backend:} FastAPI (Python).
+  \item \textbf{Database:} PostgreSQL + PostGIS.
+  \item \textbf{ORM:} SQLAlchemy (optional).
+  \item \textbf{Useful libraries:} geopandas, shapely, streamlit-folium.
+  \item \textbf{Local deployment:} Docker.
+\end{itemize}
+
+\section{Part 9 – ???}
+\begin{itemize}
+  \item PERMACULTURE AS A SERVICE
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{images/logo_agrovista.png}
+    \label{fig:enter-label}
+\end{figure}
+
+\end{document}
