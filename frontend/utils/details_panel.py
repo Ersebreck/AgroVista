@@ -6,7 +6,7 @@ import streamlit as st
 import pandas as pd
 from typing import List, Dict, Optional
 from .status_utils import convert_status_to_display, get_status_emoji
-import requests
+from .visualization import show_parcel_kpis, show_activity_frequency, show_latest_activities
 
 
 def render_no_selection_message():
@@ -23,7 +23,7 @@ def render_parcel_details(parcel: Dict, statuses: Dict, df_activities: pd.DataFr
     
     # Header with status emoji
     st.markdown(f"### {emoji} {parcel.get('name', 'Unnamed Parcel')}")
-    st.write(f"**Type:** Parcel")
+    st.write("**Type:** Parcel")
     st.write(f"**Status:** {status_display}")
     st.write(f"**ID:** {parcel_id}")
     st.write(f"**Current Use:** {parcel.get('current_use', 'Not specified')}")
@@ -36,25 +36,22 @@ def render_parcel_details(parcel: Dict, statuses: Dict, df_activities: pd.DataFr
     
     st.divider()
     
-    # Activities section
-    parcel_activities = df_activities[df_activities['parcel_id'] == parcel_id] if not df_activities.empty else None
+    # Activities section with enhanced KPIs
+    parcel_activities = df_activities[df_activities['parcel_id'] == parcel_id] if not df_activities.empty else pd.DataFrame()
     
-    if parcel_activities is not None and not parcel_activities.empty:
-        st.write(f"**📋 Activities ({len(parcel_activities)} total):**")
+    if not parcel_activities.empty:
+        # Show KPIs using visualization utils
+        show_parcel_kpis(parcel_activities)
         
-        # Show recent activities
-        recent_activities = parcel_activities.tail(5)  # Last 5 activities
-        for _, activity in recent_activities.iterrows():
-            activity_date = activity.get('date', 'No date')
-            activity_type = activity.get('type', 'Unknown')
-            activity_desc = activity.get('description', '')
-            
-            if activity_desc and len(activity_desc) > 50:
-                activity_desc = activity_desc[:47] + "..."
-            
-            st.write(f"• **{activity_type}** ({activity_date})")
-            if activity_desc:
-                st.write(f"  _{activity_desc}_")
+        # Activity frequency chart
+        st.markdown("#### 📊 Activity Frequency")
+        show_activity_frequency(parcel_activities)
+        
+        st.divider()
+        
+        # Recent activities
+        st.markdown("#### 🕒 Latest Activities")
+        show_latest_activities(parcel_activities)
     else:
         st.write("**📋 Activities:** No activities recorded")
     
@@ -64,7 +61,7 @@ def render_parcel_details(parcel: Dict, statuses: Dict, df_activities: pd.DataFr
 def render_terrain_details(terrain: Dict, parcels: List[Dict], statuses: Dict):
     """Render detailed information for a selected terrain"""
     st.markdown(f"### 🏞️ {terrain.get('name', 'Unnamed Terrain')}")
-    st.write(f"**Type:** Terrain")
+    st.write("**Type:** Terrain")
     st.write(f"**ID:** {terrain.get('id', 'N/A')}")
     st.write(f"**Description:** {terrain.get('description', 'No description available')}")
     
@@ -88,27 +85,6 @@ def render_terrain_details(terrain: Dict, parcels: List[Dict], statuses: Dict):
     st.divider()
 
 
-def render_quick_stats():
-    """Render quick statistics section"""
-    st.subheader("Quick Stats")
-    
-    # Try to get financial data using working utils functions
-    try:
-        response = requests.get("http://localhost:8000/economy/transactions/")
-        if response.status_code == 200:
-            transactions = response.json()
-            total_expense = sum(t.get('amount', 0) for t in transactions if t.get('type') in ['expense', 'gasto'])
-            total_income = sum(t.get('amount', 0) for t in transactions if t.get('type') in ['income', 'ingreso'])
-            st.metric("Total Expenses", f"${total_expense:,.0f}")
-            st.metric("Total Income", f"${total_income:,.0f}")
-        else:
-            st.metric("Expenses", "N/A")
-            st.metric("Income", "N/A")
-    except:
-        st.metric("Expenses", "N/A")
-        st.metric("Income", "N/A")
-
-
 def render_details_panel(selected_terrain_id: Optional[int], selected_parcel_id: Optional[int], 
                         terrains: List[Dict], parcels: List[Dict], statuses: Dict, 
                         df_activities: pd.DataFrame):
@@ -130,6 +106,3 @@ def render_details_panel(selected_terrain_id: Optional[int], selected_parcel_id:
         selected_terrain = next((t for t in terrains if t['id'] == selected_terrain_id), None)
         if selected_terrain:
             render_terrain_details(selected_terrain, parcels, statuses)
-    
-    st.divider()
-    render_quick_stats()

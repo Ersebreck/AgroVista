@@ -5,8 +5,7 @@ Centralized module for all backend API requests
 
 import requests
 import streamlit as st
-from typing import Optional, Dict, List, Any
-import json
+from typing import Optional, Dict, List
 
 
 class APIClient:
@@ -26,8 +25,8 @@ class APIClient:
     
     # Terrain endpoints
     def get_terrains(self) -> Optional[List[Dict]]:
-        """Get all terrains"""
-        return self._make_request("GET", "/terrenos/")
+        """Get all terrains using working endpoint"""
+        return self._make_request("GET", "/terrains")
     
     def get_terrain_by_id(self, terrain_id: int) -> Optional[Dict]:
         """Get terrain by ID"""
@@ -48,10 +47,11 @@ class APIClient:
     
     # Parcel endpoints
     def get_parcels(self, terrain_id: Optional[int] = None) -> Optional[List[Dict]]:
-        """Get parcels, optionally filtered by terrain"""
-        endpoint = "/parcelas/"
+        """Get parcels, optionally filtered by terrain using working endpoint"""
         if terrain_id:
-            endpoint += f"?terrain_id={terrain_id}"
+            endpoint = f"/parcels/by-terrain/{terrain_id}"
+        else:
+            endpoint = "/parcels/"
         return self._make_request("GET", endpoint)
     
     def get_parcel_by_id(self, parcel_id: int) -> Optional[Dict]:
@@ -73,10 +73,11 @@ class APIClient:
     
     # Activity endpoints
     def get_activities(self, parcel_id: Optional[int] = None) -> Optional[List[Dict]]:
-        """Get activities, optionally filtered by parcel"""
-        endpoint = "/actividades/"
+        """Get activities, optionally filtered by parcel using working endpoint"""
         if parcel_id:
-            endpoint += f"?parcel_id={parcel_id}"
+            endpoint = f"/activities/by-parcel/{parcel_id}"
+        else:
+            endpoint = "/activities/"
         return self._make_request("GET", endpoint)
     
     def create_activity(self, activity_data: Dict) -> Optional[Dict]:
@@ -86,16 +87,35 @@ class APIClient:
     # Economy endpoints
     def get_transactions(self) -> Optional[List[Dict]]:
         """Get all transactions"""
-        return self._make_request("GET", "/economia/transacciones/")
+        return self._make_request("GET", "/economy/transactions/")
     
     def get_budget_summary(self) -> Optional[Dict]:
-        """Get budget summary"""
-        return self._make_request("GET", "/economia/presupuesto/")
+        """Get budget summary - returns list of budgets"""
+        return self._make_request("GET", "/economy/budgets/")
     
     # Chat endpoints
     def send_chat_message(self, message: str) -> Optional[Dict]:
         """Send message to AI chat assistant"""
         return self._make_request("POST", "/chat/", json={"message": message})
+    
+    def get_llm_response(self, prompt: str) -> str:
+        """
+        Get response from LLM chat endpoint.
+        
+        Args:
+            prompt: The user prompt to send to the LLM
+            
+        Returns:
+            LLM response string or error message
+        """
+        try:
+            result = self._make_request("POST", "/chat", json={"prompt": prompt})
+            if result:
+                return result.get("response", result.get("respuesta", "[No response from model]"))
+            return "[Error connecting to backend]"
+        except Exception as e:
+            print(f"Error querying LLM: {e}")
+            return "[Error connecting to backend]"
     
     # Dashboard/Analytics endpoints
     def get_dashboard_stats(self) -> Optional[Dict]:
@@ -115,10 +135,14 @@ class APIClient:
         if terrain_id:
             endpoint += f"?terrain_id={terrain_id}"
         return self._make_request("GET", endpoint)
+    
+    def get_location(self, location_id: int) -> Optional[Dict]:
+        """Get location by ID"""
+        return self._make_request("GET", f"/locations/{location_id}")
 
 
 # Global API client instance
 @st.cache_resource
 def get_api_client() -> APIClient:
-    """Get cached API client instance"""
+    """Get cached API client instance with updated endpoints"""
     return APIClient()

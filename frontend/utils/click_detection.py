@@ -3,7 +3,7 @@ Click detection utilities for map interactions
 """
 
 from typing import Dict, List, Tuple, Optional
-from temp_utils import get_location_coordinates
+from .geospatial import get_location_coordinates
 
 
 def point_in_polygon(point_lat: float, point_lng: float, polygon_coords: List[List[float]]) -> bool:
