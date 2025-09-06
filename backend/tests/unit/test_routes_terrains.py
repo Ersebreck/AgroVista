@@ -1,7 +1,6 @@
 """
 Unit tests for terrain routes.
 """
-import pytest
 from fastapi import status
 
 

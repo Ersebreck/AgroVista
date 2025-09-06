@@ -1,14 +1,22 @@
 """
 Unit tests for database models.
 """
+from datetime import date
+
 import pytest
-from datetime import datetime, date
-from sqlalchemy.exc import IntegrityError
 
 from app.models import (
-    User, Terrain, Parcel, Activity, ActivityDetail,
-    Location, Inventory, InventoryEvent, Transaction,
-    Budget, BiologicalParameter, Simulation, ChangeHistory, Indicator
+    Activity,
+    ActivityDetail,
+    BiologicalParameter,
+    Budget,
+    Inventory,
+    InventoryEvent,
+    Parcel,
+    Simulation,
+    Terrain,
+    Transaction,
+    User,
 )
 
 

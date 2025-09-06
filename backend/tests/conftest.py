@@ -2,22 +2,20 @@
 Global test configuration and fixtures.
 """
 import os
-import pytest
-import pytest_asyncio
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
 from typing import Generator
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 # Set testing environment
 os.environ["TESTING"] = "True"
 
-from app.main import app as fastapi_app
 from app.db import get_db
-import app.models  # Import all models to register them
-from app.models import Base, User, Terrain, Parcel, Activity, Location, Inventory
-
+from app.main import app as fastapi_app
+from app.models import Activity, Base, Inventory, Location, Parcel, Terrain, User
 
 # Test database configuration - using in-memory SQLite for tests
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

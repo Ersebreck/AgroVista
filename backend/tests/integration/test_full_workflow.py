@@ -1,8 +1,9 @@
 """
 Integration tests for complete workflows in AgroVista.
 """
+from datetime import date, timedelta
+
 import pytest
-from datetime import date, datetime, timedelta
 from fastapi import status
 
 
@@ -13,13 +14,8 @@ class TestFarmManagementWorkflow:
     def test_complete_farm_setup_workflow(self, client):
         """Test setting up a complete farm from scratch."""
         # Step 1: Create a user
-        user_data = {
-            "username": "farmer_john",
-            "email": "john@farm.com",
-            "name": "John Farmer",
-            "hashed_password": "hashed_password"
-        }
         # Note: In real app, this would go through proper user registration
+        # user_data would be: {"username": "farmer_john", "email": "john@farm.com", "name": "John Farmer", "hashed_password": "hashed_password"}
         
         # Step 2: Create a terrain
         terrain_data = {
