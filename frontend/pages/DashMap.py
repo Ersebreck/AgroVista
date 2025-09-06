@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_folium import st_folium
-from temp_utils import load_data, evaluate_parcel_status
+from utils.data_loader import load_data
+from utils.parcel_status import evaluate_parcel_status
 from utils.map_rendering import create_base_map, add_terrain_polygons, add_parcel_polygons_and_markers
 from utils.click_detection import process_map_click
 from utils.status_utils import convert_status_to_display
@@ -28,7 +29,7 @@ all_parcels = parcels_df.to_dict('records') if not parcels_df.empty else []
 statuses = evaluate_parcel_status(df_activities) if not df_activities.empty else {}
 
 # --- SIDEBAR ---
-render_complete_sidebar(terrains, all_parcels, len(df_activities), statuses)
+render_complete_sidebar(statuses)
 
 # --- MAIN CONTENT AREA ---
 col1, col2 = st.columns([3, 1])
@@ -67,12 +68,6 @@ with col1:
         st.write("**Terrain Colors:**")
         for color in ['🟢 Green', '🔵 Blue', '🟠 Orange', '🟣 Purple']:
             st.write(f"{color}")
-    
-    with leg_col2:
-        st.write("**Parcel Status:**")
-        st.write("✅ Optimal/Active")
-        st.write("⚠️ Attention")
-        st.write("🚨 Critical/Inactive")
 
 # --- RIGHT PANEL: Details ---
 with col2:

@@ -3,16 +3,8 @@ Sidebar component utilities for DashMap
 """
 
 import streamlit as st
-from typing import List, Dict
-from temp_utils import summarize_parcel_status
-
-
-def render_farm_overview(terrains: List[Dict], parcels: List[Dict], activities_count: int):
-    """Render the farm overview section in sidebar"""
-    st.subheader("🏞️ Farm Overview")
-    st.metric("Total Terrains", len(terrains))
-    st.metric("Total Parcels", len(parcels))
-    st.metric("Total Activities", activities_count)
+from typing import Dict
+from .parcel_status import summarize_parcel_status
 
 
 def render_parcel_status_summary(statuses: Dict):
@@ -20,29 +12,41 @@ def render_parcel_status_summary(statuses: Dict):
     st.subheader("📈 Parcel Status")
     if statuses:
         summary = summarize_parcel_status(statuses)
-        st.write(f"🟢 Optimal: {summary['Optimal']}")
-        st.write(f"🟡 Attention: {summary['Attention']}")
-        st.write(f"🔴 Critical: {summary['Critical']}")
+        st.write(f"✅ Optimal: {summary['Optimal']}")
+        st.write(f"⚠️ Attention: {summary['Attention']}")
+        st.write(f"🚨 Critical: {summary['Critical']}")
 
 
-def render_usage_instructions():
-    """Render usage instructions in sidebar"""
-    st.subheader("💡 How to Use")
-    st.write("**Click on any terrain or parcel** on the map to view detailed information.")
-    st.write("• **Terrains** show as colored polygons")
-    st.write("• **Parcels** have status emoji markers")
-    st.write("• **Selected items** highlight in yellow")
+def render_financial_summary():
+    """Render financial summary in sidebar"""
+    st.subheader("💰 Financial Summary")
+    
+    # Try to get financial data using API client
+    try:
+        from .api_client import get_api_client
+        api_client = get_api_client()
+        transactions = api_client.get_transactions()
+        
+        if transactions:
+            total_expense = sum(t.get('amount', 0) for t in transactions if t.get('type') in ['expense', 'gasto'])
+            total_income = sum(t.get('amount', 0) for t in transactions if t.get('type') in ['income', 'ingreso'])
+            st.metric("Total Expenses", f"${total_expense:,.0f}")
+            st.metric("Total Income", f"${total_income:,.0f}")
+            
+            # Calculate net balance
+            net_balance = total_income - total_expense
+            balance_color = "normal" if net_balance >= 0 else "inverse"
+            st.metric("Net Balance", f"${net_balance:,.0f}", delta_color=balance_color)
+        else:
+            st.info("No financial data available")
+    except Exception:
+        st.info("Financial data temporarily unavailable")
 
 
-def render_complete_sidebar(terrains: List[Dict], parcels: List[Dict], activities_count: int, statuses: Dict):
+def render_complete_sidebar(statuses: Dict):
     """Render the complete sidebar with all components"""
     with st.sidebar:
-        st.header("📊 Overview")
-        
-        render_farm_overview(terrains, parcels, activities_count)
-        st.divider()
-        
         render_parcel_status_summary(statuses)
         st.divider()
         
-        render_usage_instructions()
+        render_financial_summary()

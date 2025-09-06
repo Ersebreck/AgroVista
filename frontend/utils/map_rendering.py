@@ -3,8 +3,8 @@ Map rendering utilities for AgroVista frontend
 """
 
 import folium
-from typing import List, Dict, Any
-from temp_utils import get_location_coordinates
+from typing import List, Dict
+from .geospatial import get_location_coordinates
 
 
 def create_base_map(center_lat: float = 5.490471, center_lng: float = -74.682919, zoom: int = 15) -> folium.Map:

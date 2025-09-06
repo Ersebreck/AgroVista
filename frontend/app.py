@@ -14,7 +14,6 @@ dashmap = st.Page("pages/DashMap.py", title="Terrains Management", icon="🗺️
 map_page = st.Page("pages/_2_Map.py", title="Map", icon="🌍")
 activities = st.Page("pages/_3_Activities_Inventory.py", title="Activities", icon="🌱")
 economy = st.Page("pages/_4_Economy.py", title="Economy", icon="💰")
-assistant = st.Page("pages/_5_AI_Assistant.py", title="Assistant", icon="🤖")
 
-pg = st.navigation([dashmap, dashboard, map_page, activities, economy, assistant])
+pg = st.navigation([dashmap, dashboard, map_page, activities, economy])
 pg.run()
